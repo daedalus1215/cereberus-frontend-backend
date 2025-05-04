@@ -1,0 +1,27 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Install SQLite3
+RUN apt-get update && apt-get install -y sqlite3 && rm -rf /var/lib/apt/lists/*
+
+# Create data directory for SQLite
+RUN mkdir -p /app/data
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Expose the port
+EXPOSE 3001
+
+# Start the server
+CMD ["npm", "run", "start:dev"] 

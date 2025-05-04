@@ -1,0 +1,46 @@
+.homePage {
+  min-height: 100vh;
+  background-color: #000;
+  color: #fff;
+  padding-top: 1rem;
+  
+}
+
+.homeHeader {
+  padding: 1rem;
+  border-bottom: 1px solid #2f3336;
+}
+
+.main {
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  position:fixed;
+  top: 64px;
+  width: 100%;
+}
+
+/* Floating action button for new note */
+.fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.fab:hover {
+  background-color: #4f46e5;
+  transform: scale(1.05);
+} 

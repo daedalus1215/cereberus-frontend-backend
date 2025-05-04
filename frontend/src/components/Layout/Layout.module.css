@@ -1,0 +1,13 @@
+.layout {
+  min-height: 100vh;
+}
+
+.content {
+  min-height: calc(100vh - 64px); /* Default for when header is present */
+  padding-top: 64px; /* Default padding for header */
+}
+
+.noHeader {
+  min-height: 100vh;
+  padding-top: 0;
+} 

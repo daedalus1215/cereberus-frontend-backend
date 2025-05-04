@@ -1,0 +1,10 @@
+.logo {
+  width: auto;
+  filter: brightness(0) invert(1); /* Make SVG white */
+  transition: transform 0.2s ease;
+}
+
+/* Optional hover effect */
+.logo:hover {
+  transform: scale(1.05);
+} 
