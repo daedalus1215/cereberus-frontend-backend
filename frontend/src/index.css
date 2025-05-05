@@ -1,4 +1,3 @@
-
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -230,4 +229,20 @@ button:focus-visible {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.homePage {
+  min-height: 100vh;
+  /* background-color: #000; */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.homeMain {
+  flex-direction: column;
+  /* background-color: #000; */
+  margin: 0 auto;
+  width: min(100%, 1200px);
 }

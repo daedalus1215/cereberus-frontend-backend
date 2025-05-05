@@ -2,7 +2,6 @@ import type { ColumnDef, Row } from "@tanstack/react-table";
 import { Eye, MoreVertical, Pencil } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import React from "react";
 
 export type PasswordEntry = {
   id: string;
@@ -30,7 +29,7 @@ export const columns: ColumnDef<PasswordEntry>[] = [
       // We'll handle reveal logic in the table row state
       const revealed = row.getIsSelected();
       return (
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "left", gap: 8 }}>
           <span style={{ filter: revealed ? "none" : "blur(6px)", fontFamily: "monospace" }}>
             {row.getValue("password")}
           </span>

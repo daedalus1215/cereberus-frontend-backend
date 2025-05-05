@@ -133,7 +133,7 @@ export const PasswordTable: React.FC = () => {
   if (error) return <div>Error loading passwords</div>;
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border w-full">
       <Table className={styles.table}>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
@@ -171,7 +171,7 @@ export const PasswordTable: React.FC = () => {
             )
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={columns.length} className="h-24">
                 No results.
               </TableCell>
             </TableRow>

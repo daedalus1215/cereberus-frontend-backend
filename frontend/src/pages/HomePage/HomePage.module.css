@@ -1,7 +1,7 @@
 .homePage {
   min-height: 100vh;
-  background-color: #000;
-  color: #fff;
+  /* background-color: #000; */
+  /* color: #fff; */
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -29,7 +29,7 @@
 
 .homeMain {
   flex-direction: column;
-  background-color: #000;
+  /* background-color: #000; */
   margin: 0 auto;
   width: min(100%, 1200px);
 }
