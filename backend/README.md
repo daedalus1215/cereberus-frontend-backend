@@ -1,4 +1,4 @@
-## Chronus Backend
+## Cerberus Backend
 * Written in NestJS
 
 ## Installation
