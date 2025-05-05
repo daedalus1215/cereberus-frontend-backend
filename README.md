@@ -1,2 +1,7 @@
 # cereberus-frontend-backend
-front end: vanilla, back end: nestJS
+front end: VueTS, back end: NestJS
+
+
+## Front end
+* VueTS, tailwind
+
