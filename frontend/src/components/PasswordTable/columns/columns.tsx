@@ -2,6 +2,8 @@ import type { ColumnDef, Row } from "@tanstack/react-table";
 import { Eye, MoreVertical, Pencil } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import styles from "./columns.module.css";
 
 export type PasswordEntry = {
   id: string;
@@ -64,7 +66,7 @@ export const columns: ColumnDef<PasswordEntry>[] = [
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className={cn(styles.contextDropDown)}>
             <DropdownMenuItem onClick={() => {/* TODO: handle versions */}}>
               Versions of password
             </DropdownMenuItem>
