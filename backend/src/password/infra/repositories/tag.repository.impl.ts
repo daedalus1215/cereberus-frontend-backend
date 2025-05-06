@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Tag } from '../../domain/entities/tag.entity';
-import { TagRepository } from '../../domain/repositories/tag.repository';
 
 @Injectable()
-export class TagRepositoryImpl implements TagRepository {
+export class TagRepositoryImpl {
   constructor(
     @InjectRepository(Tag)
     private readonly repo: Repository<Tag>

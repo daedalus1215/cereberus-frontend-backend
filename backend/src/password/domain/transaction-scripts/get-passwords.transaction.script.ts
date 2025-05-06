@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PasswordRepository } from '../repositories/password.repository';
+import { PasswordRepositoryImpl } from '../../infra/repositories/password.repository.impl';
 import { PasswordEncryptionService } from '../services/password-encryption.service';
 import { PasswordResponseDto } from '../../apps/dtos/responses/password.response.dto';
 
 @Injectable()
 export class GetPasswordsTransactionScript {
   constructor(
-    private readonly passwordRepo: PasswordRepository,
+    private readonly passwordRepo: PasswordRepositoryImpl,
     private readonly encryption: PasswordEncryptionService
   ) {}
 

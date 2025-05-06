@@ -19,9 +19,6 @@ import { PasswordActions } from './apps/actions/password.actions';
     AddPasswordTransactionScript,
     UpdatePasswordTransactionScript,
     PasswordEncryptionService,
-    // Provide repositories as interfaces for DI
-    { provide: 'PasswordRepository', useExisting: PasswordRepositoryImpl },
-    { provide: 'TagRepository', useExisting: TagRepositoryImpl },
   ],
   controllers: [PasswordActions],
 })
