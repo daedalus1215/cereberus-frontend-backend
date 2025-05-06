@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useReactTable, getCoreRowModel, flexRender, Row, ColumnDef, CellContext } from "@tanstack/react-table";
-import { columns, PasswordEntry } from "./columns";
+import { columns, PasswordEntry } from "./columns/columns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import styles from "./PasswordTable.module.css";
@@ -133,52 +133,57 @@ export const PasswordTable: React.FC = () => {
   if (error) return <div>Error loading passwords</div>;
 
   return (
-    <div className="rounded-md border w-full">
-      <Table className={styles.table}>
-        <TableHeader>
-          {table.getHeaderGroups().map(headerGroup => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map(header => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map(row =>
-              editingId === row.original.id ? (
-                <EditableRow
-                  key={row.id}
-                  row={row}
-                  onSave={updated => {
-                    setRows(rows => rows.map(r => (r.id === updated.id ? updated : r)));
-                    setEditingId(null);
-                  }}
-                  onCancel={() => setEditingId(null)}
-                />
-              ) : (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map(cell => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+    <>
+      <div className="context-window-backdrop" />
+      <div className="context-window">
+        <div className="rounded-md border w-full">
+          <Table className={styles.table}>
+            <TableHeader>
+              {table.getHeaderGroups().map(headerGroup => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
                   ))}
                 </TableRow>
-              )
-            )
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length ? (
+                table.getRowModel().rows.map(row =>
+                  editingId === row.original.id ? (
+                    <EditableRow
+                      key={row.id}
+                      row={row}
+                      onSave={updated => {
+                        setRows(rows => rows.map(r => (r.id === updated.id ? updated : r)));
+                        setEditingId(null);
+                      }}
+                      onCancel={() => setEditingId(null)}
+                    />
+                  ) : (
+                    <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map(cell => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  )
+                )
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </>
   );
 };
 // If you see a type error for @tanstack/react-query, make sure to install it: pnpm add @tanstack/react-query 

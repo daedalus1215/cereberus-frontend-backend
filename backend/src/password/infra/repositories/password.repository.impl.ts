@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Password } from '../../domain/entities/password.entity';
-import { PasswordRepository } from '../../domain/repositories/password.repository';
 
 @Injectable()
-export class PasswordRepositoryImpl implements PasswordRepository {
+export class PasswordRepositoryImpl {
   constructor(
     @InjectRepository(Password)
     private readonly repo: Repository<Password>
