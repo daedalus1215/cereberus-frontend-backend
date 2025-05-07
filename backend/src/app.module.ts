@@ -6,7 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/domain/entities/user.entity';
 import { PasswordModule } from './password/password.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,6 +19,7 @@ import { PasswordModule } from './password/password.module';
         database: configService.get<string>('DATABASE'),
         entities: [User],
         synchronize: false,
+        runMigrations: true,
       }),
       inject: [ConfigService],
     }),

@@ -5,11 +5,16 @@ import { columns, PasswordEntry } from "./columns/columns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import styles from "./PasswordTable.module.css";
+
+
+
 const fetchPasswords = async (): Promise<PasswordEntry[]> => {
-  const res = await fetch("/src/components/PasswordTable/mock-passwords.json");
+  const res = await fetch("http://localhost:3000/api/passwords");
   if (!res.ok) throw new Error("Failed to fetch passwords");
   return res.json();
 };
+
+
 
 const EditableRow: React.FC<{
   row: Row<PasswordEntry>;
@@ -186,4 +191,3 @@ export const PasswordTable: React.FC = () => {
     </>
   );
 };
-// If you see a type error for @tanstack/react-query, make sure to install it: pnpm add @tanstack/react-query 

@@ -1,6 +1,6 @@
 import styles from "./HomePage.module.css";
 import { cn } from "@/lib/utils";
-import { PasswordTable } from "@/components/PasswordTable/PasswordTable";
+import { PasswordTable } from "@/pages/HomePage/components/PasswordTable/PasswordTable";
 
 export function HomePage() {
   return (

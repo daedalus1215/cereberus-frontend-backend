@@ -46,7 +46,7 @@ export const columns: ColumnDef<PasswordEntry>[] = [
       const tags = row.getValue("tags") as string[];
       return (
         <div style={{ display: "flex", gap: 4 }}>
-          {tags.map((tag) => (
+          {tags?.map((tag) => (
             <span key={tag} className="px-2 py-0.5 bg-muted rounded text-xs">
               {tag}
             </span>
