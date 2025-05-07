@@ -1,5 +1,5 @@
 import type { ColumnDef, Row } from "@tanstack/react-table";
-import { Eye, MoreVertical, Pencil } from "lucide-react";
+import { Eye, List, MoreVertical, Pencil } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,7 @@ export const columns: ColumnDef<PasswordEntry>[] = [
       const tags = row.getValue("tags") as string[];
       return (
         <div style={{ display: "flex", gap: 4 }}>
-          {tags.map((tag) => (
+          {tags?.map((tag) => (
             <span key={tag} className="px-2 py-0.5 bg-muted rounded text-xs">
               {tag}
             </span>
@@ -67,14 +67,14 @@ export const columns: ColumnDef<PasswordEntry>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className={cn(styles.contextDropDown)}>
-            <DropdownMenuItem onClick={() => {/* TODO: handle versions */}}>
-              Versions of password
+            <DropdownMenuItem className={styles.dropDownItem} onClick={() => {/* TODO: handle versions */}}>
+            <List className={styles.dropDownIcon} /> Versions of password
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => row.toggleSelected() }>
-              <Eye className="w-4 h-4 mr-2" /> Display password
+              <Eye className={styles.dropDownIcon} /> Display password
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => row.toggleEditing?.() }>
-              <Pencil className="w-4 h-4 mr-2" /> Edit password
+              <Pencil className={styles.dropDownIcon} /> Edit password
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
