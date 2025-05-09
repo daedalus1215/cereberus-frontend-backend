@@ -1,5 +1,5 @@
 import type { ColumnDef, Row } from "@tanstack/react-table";
-import { Eye, List, MoreVertical, Pencil } from "lucide-react";
+import { Eye, List, MoreVertical, Pencil, Trash } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,7 @@ export type PasswordEntry = {
   name: string;
   username: string;
   password: string;
-  tags: string[];
+  tags: {id: number, name: string}[];
 };
 
 export const columns: ColumnDef<PasswordEntry>[] = [
@@ -43,12 +43,12 @@ export const columns: ColumnDef<PasswordEntry>[] = [
     accessorKey: "tags",
     header: "Tags",
     cell: ({ row }: { row: Row<PasswordEntry> }) => {
-      const tags = row.getValue("tags") as string[];
+      const tags = row.getValue("tags") as { id: number, name: string }[];
       return (
         <div style={{ display: "flex", gap: 4 }}>
           {tags?.map((tag) => (
-            <span key={tag} className="px-2 py-0.5 bg-muted rounded text-xs">
-              {tag}
+            <span key={tag.id} className="px-2 py-0.5 bg-muted rounded text-xs">
+              {tag.name}
             </span>
           ))}
         </div>
@@ -66,15 +66,22 @@ export const columns: ColumnDef<PasswordEntry>[] = [
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className={cn(styles.contextDropDown)}>
-            <DropdownMenuItem className={styles.dropDownItem} onClick={() => {/* TODO: handle versions */}}>
-            <List className={styles.dropDownIcon} /> Versions of password
+          <DropdownMenuContent align="end" className={cn(styles.dropDownMenuContent)}>
+
+            <DropdownMenuItem className={styles.dropdownMenuContent} onClick={() => {/* TODO: handle versions */}}>
+              <List /> <span  className={styles.dropdownMenuItemText}>Versions of password</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => row.toggleSelected() }>
-              <Eye className={styles.dropDownIcon} /> Display password
+
+            <DropdownMenuItem className={styles.dropdownMenuContent}  onClick={() => row.toggleSelected() }>
+              <Eye /> <span className={styles.dropdownMenuItemText}>Display password</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => row.toggleEditing?.() }>
-              <Pencil className={styles.dropDownIcon} /> Edit password
+
+            <DropdownMenuItem className={styles.dropdownMenuContent} onClick={() => row.toggleExpanded?.() }>
+              <Pencil /> <span className={styles.dropdownMenuItemText}>Edit password</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem className={styles.dropdownMenuContent} onClick={() => {/* TODO: handle delete */}}>
+              <Trash /> <span className={styles.dropdownMenuItemText}>Delete password</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

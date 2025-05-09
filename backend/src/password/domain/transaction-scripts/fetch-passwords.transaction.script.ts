@@ -4,7 +4,7 @@ import { PasswordEncryptionService } from '../services/password-encryption.servi
 import { PasswordResponseDto } from '../../apps/dtos/responses/password.response.dto';
 
 @Injectable()
-export class GetPasswordsTransactionScript {
+export class FetchPasswordsTransactionScript {
   constructor(
     private readonly passwordRepo: PasswordRepositoryImpl,
     private readonly encryption: PasswordEncryptionService

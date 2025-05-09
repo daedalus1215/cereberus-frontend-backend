@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Body, Param } from '@nestjs/common';
-import { GetPasswordsTransactionScript } from '../../domain/transaction-scripts/get-passwords.transaction.script';
+import { FetchPasswordsTransactionScript } from '../../domain/transaction-scripts/fetch-passwords.transaction.script';
 import { AddPasswordTransactionScript } from '../../domain/transaction-scripts/add-password.transaction.script';
 import { UpdatePasswordTransactionScript } from '../../domain/transaction-scripts/update-password.transaction.script';
 import { AddPasswordDto } from '../dtos/requests/add-password.dto';
@@ -10,7 +10,7 @@ import { PasswordResponseDto } from '../dtos/responses/password.response.dto';
 @Controller('passwords')
 export class PasswordActions {
   constructor(
-    private readonly getPasswordsTS: GetPasswordsTransactionScript,
+    private readonly getPasswordsTS: FetchPasswordsTransactionScript,
     private readonly addPasswordTS: AddPasswordTransactionScript,
     private readonly updatePasswordTS: UpdatePasswordTransactionScript
   ) {}

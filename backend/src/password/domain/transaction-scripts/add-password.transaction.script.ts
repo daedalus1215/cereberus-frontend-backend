@@ -29,6 +29,8 @@ export class AddPasswordTransactionScript {
     password.user_id = userId;
     password.tags = tags;
     const saved = await this.passwordRepo.save(password);
+
+    
     return new PasswordResponseDto({
       id: saved.id,
       name: saved.name,
