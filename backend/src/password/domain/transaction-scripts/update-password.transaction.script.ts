@@ -13,7 +13,7 @@ export class UpdatePasswordTransactionScript {
     private readonly encryption: PasswordEncryptionService
   ) {}
 
-  async execute(userId: number, id: number, dto: UpdatePasswordDto): Promise<PasswordResponseDto> {
+  async execute(userId: string, id: number, dto: UpdatePasswordDto): Promise<PasswordResponseDto> {
     const password = await this.passwordRepo.findByIdAndUser(id, userId);
     if (!password) throw new NotFoundException('Password not found');
 
@@ -36,7 +36,7 @@ export class UpdatePasswordTransactionScript {
       password: dto.password ?? this.encryption.decrypt(saved.password),
       created_date: saved.created_date,
       last_modified_date: saved.last_modified_date,
-      tagIds: saved.tags?.map(tag => tag.id) || []
+      tags: saved.tags?.map(tag => ({id: tag.id, name: tag.name})) || []
     });
   }
 } 

@@ -13,5 +13,5 @@ export class Tag {
   user_id: number;
 
   @ManyToMany(() => Password, password => password.tags)
-  passwords: Password[];
+  passwords!: Password[];
 } 

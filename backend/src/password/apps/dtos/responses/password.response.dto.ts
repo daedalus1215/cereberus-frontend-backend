@@ -7,7 +7,7 @@ export class PasswordResponseDto {
   password: string; // decrypted
   created_date: Date;
   last_modified_date: Date;
-  tags: Tag[];
+  tags: {id: number, name: string}[];
 
   constructor(partial: Partial<PasswordResponseDto>) {
     Object.assign(this, partial);

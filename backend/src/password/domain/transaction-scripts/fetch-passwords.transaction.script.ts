@@ -4,34 +4,15 @@ import { PasswordEncryptionService } from '../services/password-encryption.servi
 import { PasswordResponseDto } from '../../apps/dtos/responses/password.response.dto';
 
 @Injectable()
-export class GetPasswordsTransactionScript {
+export class FetchPasswordsTransactionScript {
   constructor(
     private readonly passwordRepo: PasswordRepositoryImpl,
     private readonly encryption: PasswordEncryptionService
   ) {}
 
-  async execute(userId: number): Promise<PasswordResponseDto[]> {
-    // const passwords = await this.passwordRepo.findAllByUser(userId);
+  async execute(userId: string): Promise<PasswordResponseDto[]> {
+    const passwords = await this.passwordRepo.findAllByUser(userId);
 
-    const passwords = [{
-      id: 1,
-      name: "Gmail",
-      username: "user1@gmail.com",
-      password: "hunter2",
-      created_date: new Date(),
-      last_modified_date: new Date(),
-      tags: [{id: 1, name: "email"}, {id: 2, name: "personal"}]
-    }, {
-      id: 2,
-      name: "GitHub",
-      username: "octocat",
-      password: "s3cr3t!",
-      created_date: new Date(),
-      last_modified_date: new Date(),
-      tags: [{id: 1, name: "dev"}, {id: 2, name: "work"}]
-    }]
-
-    
     return passwords.map(pw => new PasswordResponseDto({
       id: pw.id,
       name: pw.name,
