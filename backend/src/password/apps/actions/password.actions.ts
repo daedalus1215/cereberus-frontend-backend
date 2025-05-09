@@ -5,6 +5,7 @@ import { UpdatePasswordTransactionScript } from '../../domain/transaction-script
 import { AddPasswordDto } from '../dtos/requests/add-password.dto';
 import { UpdatePasswordDto } from '../dtos/requests/update-password.dto';
 import { PasswordResponseDto } from '../dtos/responses/password.response.dto';
+import { GetAuthUser } from 'src/auth/app/decorators/get-auth-user.decorator';
 // import { GetAuthUser } from 'src/auth/app/decorators/get-auth-user.decorator';
 
 @Controller('passwords')
@@ -24,10 +25,9 @@ export class PasswordActions {
   @Post()
   async add(
     @Body() dto: AddPasswordDto,
-    // @GetAuthUser() user
+    @GetAuthUser() user
   ): Promise<PasswordResponseDto> {
-    const userId = 1; // TODO: replace with user.id from auth context
-    return this.addPasswordTS.execute(userId, dto);
+    return this.addPasswordTS.execute(user.id, dto);
   }
 
   @Patch(':id')
