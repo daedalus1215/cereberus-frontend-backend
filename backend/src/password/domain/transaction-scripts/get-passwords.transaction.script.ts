@@ -20,7 +20,7 @@ export class GetPasswordsTransactionScript {
       password: "hunter2",
       created_date: new Date(),
       last_modified_date: new Date(),
-      tags: [{id: 1, name: "email"}, {id: 2, name: "personal"}]
+      tags: [{id: 1, name: "email", user_id: 1, passwords: []}, {id: 2, name: "personal", user_id: 1, passwords: []}]
     }, {
       id: 2,
       name: "GitHub",
@@ -28,7 +28,7 @@ export class GetPasswordsTransactionScript {
       password: "s3cr3t!",
       created_date: new Date(),
       last_modified_date: new Date(),
-      tags: [{id: 1, name: "dev"}, {id: 2, name: "work"}]
+      tags: [{id: 1, name: "dev", user_id: 1, passwords: []}, {id: 2, name: "work", user_id: 1, passwords: [] }]
     }]
 
     

@@ -15,7 +15,6 @@ const fetchPasswords = async (): Promise<PasswordEntry[]> => {
 };
 
 
-
 const EditableRow: React.FC<{
   row: Row<PasswordEntry>;
   onSave: (data: PasswordEntry) => void;
@@ -48,7 +47,7 @@ const EditableRow: React.FC<{
       <TableCell>
         <input
           className="w-full border rounded px-2 py-1"
-          value={edit.tags.join(", ")}
+          value={edit.tags.map(tag => tag.name).join(", ")}
           onChange={e => setEdit({ ...edit, tags: e.target.value.split(/,\s*/) })}
         />
       </TableCell>

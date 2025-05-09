@@ -36,7 +36,7 @@ export class UpdatePasswordTransactionScript {
       password: dto.password ?? this.encryption.decrypt(saved.password),
       created_date: saved.created_date,
       last_modified_date: saved.last_modified_date,
-      tagIds: saved.tags?.map(tag => tag.id) || []
+      tags: saved.tags?.map(tag => ({id: tag.id, name: tag.name})) || []
     });
   }
 } 
