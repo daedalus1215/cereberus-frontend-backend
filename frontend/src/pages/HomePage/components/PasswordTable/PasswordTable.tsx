@@ -3,66 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useReactTable, getCoreRowModel, flexRender, Row, ColumnDef, CellContext } from "@tanstack/react-table";
 import { columns, PasswordEntry } from "./columns/columns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import styles from "./PasswordTable.module.css";
-
-
+import api from "@/api/axios.interceptor";
 
 const fetchPasswords = async (): Promise<PasswordEntry[]> => {
-  const res = await fetch("http://localhost:3000/api/passwords");
-  if (!res.ok) throw new Error("Failed to fetch passwords");
-  return res.json();
-};
-
-
-const EditableRow: React.FC<{
-  row: Row<PasswordEntry>;
-  onSave: (data: PasswordEntry) => void;
-  onCancel: () => void;
-}> = ({ row, onSave, onCancel }) => {
-  const [edit, setEdit] = useState<PasswordEntry>({ ...row.original });
-  return (
-    <TableRow>
-      <TableCell>
-        <input
-          className="w-full border rounded px-2 py-1"
-          value={edit.name}
-          onChange={e => setEdit({ ...edit, name: e.target.value })}
-        />
-      </TableCell>
-      <TableCell>
-        <input
-          className="w-full border rounded px-2 py-1"
-          value={edit.username}
-          onChange={e => setEdit({ ...edit, username: e.target.value })}
-        />
-      </TableCell>
-      <TableCell>
-        <input
-          className="w-full border rounded px-2 py-1 font-mono"
-          value={edit.password}
-          onChange={e => setEdit({ ...edit, password: e.target.value })}
-        />
-      </TableCell>
-      <TableCell>
-        <input
-          className="w-full border rounded px-2 py-1"
-          value={edit.tags.map(tag => tag.name).join(", ")}
-          onChange={e => setEdit({ ...edit, tags: e.target.value.split(/,\s*/) })}
-        />
-      </TableCell>
-      <TableCell>
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => onSave(edit)}>
-            Save
-          </Button>
-          <Button size="sm" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        </div>
-      </TableCell>
-    </TableRow>
-  );
+  const res = await api.get("passwords");
+  return res.data;
 };
 
 // Custom context for action cell

@@ -14,7 +14,7 @@ export class AddPasswordTransactionScript {
     private readonly encryption: PasswordEncryptionService
   ) {}
 
-  async execute(userId: number, dto: AddPasswordDto): Promise<PasswordResponseDto> {
+  async execute(userId: string, dto: AddPasswordDto): Promise<PasswordResponseDto> {
     let tags = [];
     if (dto.tagIds && dto.tagIds.length > 0) {
       tags = await this.tagRepo.findByIds(dto.tagIds);
@@ -30,7 +30,7 @@ export class AddPasswordTransactionScript {
     password.tags = tags;
     const saved = await this.passwordRepo.save(password);
 
-    
+
     return new PasswordResponseDto({
       id: saved.id,
       name: saved.name,

@@ -22,7 +22,7 @@ export class Password {
   last_modified_date: Date;
 
   @Column()
-  user_id: number;
+  user_id: string;
 
   @ManyToMany(() => Tag, tag => tag.passwords, { cascade: true })
   @JoinTable({

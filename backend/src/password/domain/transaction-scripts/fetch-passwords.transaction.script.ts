@@ -10,7 +10,7 @@ export class FetchPasswordsTransactionScript {
     private readonly encryption: PasswordEncryptionService
   ) {}
 
-  async execute(userId: number): Promise<PasswordResponseDto[]> {
+  async execute(userId: string): Promise<PasswordResponseDto[]> {
     const passwords = await this.passwordRepo.findAllByUser(userId);
 
     return passwords.map(pw => new PasswordResponseDto({

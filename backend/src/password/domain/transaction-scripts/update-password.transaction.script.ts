@@ -13,7 +13,7 @@ export class UpdatePasswordTransactionScript {
     private readonly encryption: PasswordEncryptionService
   ) {}
 
-  async execute(userId: number, id: number, dto: UpdatePasswordDto): Promise<PasswordResponseDto> {
+  async execute(userId: string, id: number, dto: UpdatePasswordDto): Promise<PasswordResponseDto> {
     const password = await this.passwordRepo.findByIdAndUser(id, userId);
     if (!password) throw new NotFoundException('Password not found');
 
