@@ -1,16 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PasswordRepositoryImpl } from '../../infra/repositories/password.repository.impl';
 import { TagRepositoryImpl } from '../../infra/repositories/tag.repository.impl';
-import { PasswordEncryptionService } from '../services/password-encryption.service';
 import { UpdatePasswordDto } from '../../apps/dtos/requests/update-password.dto';
 import { PasswordResponseDto } from '../../apps/dtos/responses/password.response.dto';
+import { EncryptionAdapter } from '../../infra/encryption/encryption.adapter';
 
 @Injectable()
 export class UpdatePasswordTransactionScript {
   constructor(
     private readonly passwordRepo: PasswordRepositoryImpl,
     private readonly tagRepo: TagRepositoryImpl,
-    private readonly encryption: PasswordEncryptionService
+    private readonly encryption: EncryptionAdapter
   ) {}
 
   async execute(userId: string, id: number, dto: UpdatePasswordDto): Promise<PasswordResponseDto> {
