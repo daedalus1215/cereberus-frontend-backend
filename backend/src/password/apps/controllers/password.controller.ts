@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards } from '@nestjs/common';
 import { FetchPasswordsTransactionScript } from '../../domain/transaction-scripts/fetch-passwords.transaction.script';
 import { AddPasswordTransactionScript } from '../../domain/transaction-scripts/add-password.transaction.script';
 import { UpdatePasswordTransactionScript } from '../../domain/transaction-scripts/update-password.transaction.script';
@@ -7,6 +7,7 @@ import { UpdatePasswordDto } from '../dtos/requests/update-password.dto';
 import { PasswordResponseDto } from '../dtos/responses/password.response.dto';
 import { GetAuthUser } from 'src/auth/app/decorators/get-auth-user.decorator';
 import { AuthUser } from 'src/auth/app/decorators/get-auth-user.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('passwords')
 export class PasswordController {
@@ -17,8 +18,10 @@ export class PasswordController {
   ) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   async getAll(@GetAuthUser() user: AuthUser): Promise<PasswordResponseDto[]> {
-    return this.getPasswordsTS.execute(user.userId);
+    console.log('useree', user);
+    return this.getPasswordsTS.execute(user?.userId);
   }
 
   @Post()
@@ -26,7 +29,8 @@ export class PasswordController {
     @Body() dto: AddPasswordDto,
     @GetAuthUser() user: AuthUser
   ): Promise<PasswordResponseDto> {
-    return this.addPasswordTS.execute(user.userId, dto);
+    console.log('userdd', user);
+    return this.addPasswordTS.execute(user?.userId, dto);
   }
 
   @Patch(':id')

@@ -5,6 +5,7 @@ import { LandingPage } from './pages/LandingPage/LandingPage';
 import { LoginPage } from './pages/LoginPage/LoginPage';
 import { RegisterPage } from './pages/RegisterPage/RegisterPage';
 import { HomePage } from './pages/HomePage/HomePage';
+import { Header } from "./components/Header/Header";
 
 const ROUTES = {
   LANDING_PAGE: 'landing-page',
@@ -43,6 +44,7 @@ export function App() {
   return (
     <AuthProvider>
       <Router>
+        <Header />
         <AppRoutes />
       </Router>
     </AuthProvider>
