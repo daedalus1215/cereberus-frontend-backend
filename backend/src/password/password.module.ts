@@ -8,10 +8,12 @@ import { FetchPasswordsTransactionScript } from './domain/transaction-scripts/fe
 import { AddPasswordTransactionScript } from './domain/transaction-scripts/add-password.transaction.script';
 import { UpdatePasswordTransactionScript } from './domain/transaction-scripts/update-password.transaction.script';
 import { PasswordEncryptionService } from './domain/services/password-encryption.service';
-import { PasswordActions } from './apps/actions/password.actions';
-
+import { PasswordController } from './apps/controllers/password.controller';
+import { AuthModule } from 'src/auth/auth.module';
 @Module({
-  imports: [TypeOrmModule.forFeature([Password, Tag])],
+  imports: [TypeOrmModule.forFeature([Password, Tag]),
+    AuthModule,
+  ],
   providers: [
     PasswordRepositoryImpl,
     TagRepositoryImpl,
@@ -20,6 +22,6 @@ import { PasswordActions } from './apps/actions/password.actions';
     UpdatePasswordTransactionScript,
     PasswordEncryptionService,
   ],
-  controllers: [PasswordActions],
+  controllers: [PasswordController],
 })
 export class PasswordModule {} 

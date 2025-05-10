@@ -24,13 +24,13 @@ export function RegisterPage() {
     }
   };
 
-  // Redirect if already authenticated
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      console.log('Already authenticated, redirecting...');
-      navigate('/', { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
+  // // Redirect if already authenticated
+  // React.useEffect(() => {
+  //   if (isAuthenticated) {
+  //     console.log('Already authenticated, redirecting...');
+  //     navigate('/', { replace: true });
+  //   }
+  // }, [isAuthenticated, navigate]);
 
   return (
     <div className={styles.registerPage}>

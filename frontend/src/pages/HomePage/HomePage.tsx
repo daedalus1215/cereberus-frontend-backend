@@ -4,9 +4,60 @@ import { PasswordTable } from "@/pages/HomePage/components/PasswordTable/Passwor
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import api from "@/api/axios.interceptor";
+import type { AxiosError } from "axios";
+
+const MOCK_TAGS = [
+  { id: 1, name: "work" },
+  { id: 2, name: "personal" },
+  { id: 3, name: "finance" },
+];
 
 export function HomePage() {
   const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    username: "",
+    password: "",
+    tagIds: [] as number[],
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleTagToggle = (id: number) => {
+    setForm((prev) => ({
+      ...prev,
+      tagIds: prev.tagIds.includes(id)
+        ? prev.tagIds.filter((tid) => tid !== id)
+        : [...prev.tagIds, id],
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      await api.post("passwords", form);
+      setShowModal(false);
+      setForm({ name: "", username: "", password: "", tagIds: [] });
+      // TODO: trigger table refresh
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && (err as AxiosError).isAxiosError) {
+        const axiosErr = err as AxiosError<{ message?: string }>;
+        setError(axiosErr.response?.data?.message || "Failed to create password");
+      } else {
+        setError("Failed to create password");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className={cn(styles.homePage)}>
       <main className={cn(styles.homeMain)}>
@@ -35,7 +86,7 @@ export function HomePage() {
       >
         <Plus size={28} />
       </Button>
-      {/* Modal Placeholder */}
+      {/* Modal with Form */}
       {showModal && (
         <div
           style={{
@@ -73,13 +124,61 @@ export function HomePage() {
                 cursor: "pointer",
               }}
               aria-label="Close modal"
+              disabled={submitting}
             >
               ×
             </button>
-            <div style={{ textAlign: "center", marginTop: 16 }}>
-              <h2 style={{ marginBottom: 12 }}>Create New Password</h2>
-              <p>Modal placeholder for password creation form.</p>
-            </div>
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 16 }}>
+              <h2 style={{ marginBottom: 12, textAlign: "center" }}>Create New Password</h2>
+              <input
+                name="name"
+                placeholder="App/Site/Device Name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                disabled={submitting}
+                style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+              />
+              <input
+                name="username"
+                placeholder="Username"
+                value={form.username}
+                onChange={handleChange}
+                required
+                disabled={submitting}
+                style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+              />
+              <input
+                name="password"
+                placeholder="Password"
+                type="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                disabled={submitting}
+                style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+              />
+              <div>
+                <div style={{ marginBottom: 4 }}>Tags:</div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {MOCK_TAGS.map((tag) => (
+                    <label key={tag.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <input
+                        type="checkbox"
+                        checked={form.tagIds.includes(tag.id)}
+                        onChange={() => handleTagToggle(tag.id)}
+                        disabled={submitting}
+                      />
+                      {tag.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {error && <div style={{ color: "red", textAlign: "center" }}>{error}</div>}
+              <Button type="submit" disabled={submitting} style={{ marginTop: 8 }}>
+                {submitting ? "Creating..." : "Create Password"}
+              </Button>
+            </form>
           </div>
         </div>
       )}
