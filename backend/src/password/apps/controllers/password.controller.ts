@@ -10,6 +10,7 @@ import { AuthUser } from 'src/auth/app/decorators/get-auth-user.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('passwords')
+@UseGuards(JwtAuthGuard)
 export class PasswordController {
   constructor(
     private readonly getPasswordsTS: FetchPasswordsTransactionScript,
@@ -18,7 +19,6 @@ export class PasswordController {
   ) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   async getAll(@GetAuthUser() user: AuthUser): Promise<PasswordResponseDto[]> {
     console.log('useree', user);
     return this.getPasswordsTS.execute(user?.userId);
