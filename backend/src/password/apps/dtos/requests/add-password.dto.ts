@@ -15,7 +15,6 @@ export class AddPasswordDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @ArrayUnique()
   @IsInt({ each: true })
   tagIds?: number[];

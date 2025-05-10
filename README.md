@@ -1,4 +1,4 @@
-# cereberus-frontend-backend
+# cerberus-frontend-backend
 front end: VueTS, back end: NestJS
 
 

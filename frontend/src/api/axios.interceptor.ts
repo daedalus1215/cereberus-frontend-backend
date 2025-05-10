@@ -1,18 +1,16 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/',  // We'll handle the full path in the interceptor
+  baseURL: import.meta.env.VITE_API_URL || '/', 
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Add /api prefix to all requests except those that already have it
-    if (!config.url?.startsWith('/api')) {
-      config.url = `/api${config.url}`;
+    if (!config.url?.startsWith('/api/')) {
+      config.url = `/api/${config.url}`;
     }
 
     const token = localStorage.getItem('jwt_token');

@@ -7,19 +7,27 @@ import { TagRepositoryImpl } from './infra/repositories/tag.repository.impl';
 import { FetchPasswordsTransactionScript } from './domain/transaction-scripts/fetch-passwords.transaction.script';
 import { AddPasswordTransactionScript } from './domain/transaction-scripts/add-password.transaction.script';
 import { UpdatePasswordTransactionScript } from './domain/transaction-scripts/update-password.transaction.script';
-import { PasswordEncryptionService } from './domain/services/password-encryption.service';
-import { PasswordActions } from './apps/actions/password.actions';
+import { PasswordController } from './apps/controllers/password.controller';
+import { AuthModule } from 'src/auth/auth.module';
+import { EncryptionAdapter } from './infra/encryption/encryption.adapter';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Password, Tag])],
+  imports: [TypeOrmModule.forFeature([Password, Tag]),
+    AuthModule,
+  ],
   providers: [
     PasswordRepositoryImpl,
     TagRepositoryImpl,
+    {
+      provide: EncryptionAdapter,
+      useFactory: (configService: ConfigService) => new EncryptionAdapter(configService.get<string>('ENCRYPTION_KEY'), configService.get<string>('ENCRYPTION_SALT')),
+      inject: [ConfigService],
+    },
     FetchPasswordsTransactionScript,
     AddPasswordTransactionScript,
     UpdatePasswordTransactionScript,
-    PasswordEncryptionService,
   ],
-  controllers: [PasswordActions],
+  controllers: [PasswordController],
 })
 export class PasswordModule {} 

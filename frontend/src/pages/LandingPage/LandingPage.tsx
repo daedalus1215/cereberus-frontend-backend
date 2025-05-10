@@ -14,8 +14,6 @@ export const LandingPage: React.FC = () => {
         </div>
 
         <div className={styles.actionSection}>
-          <h1 className={styles.title}>Cerberus</h1>
-          <h2 className={styles.subtitle}>Join today</h2>
         
           <div className={styles.buttonGroup}>
 

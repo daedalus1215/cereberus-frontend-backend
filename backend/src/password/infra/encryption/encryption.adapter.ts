@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 
 @Injectable()
-export class PasswordEncryptionService {
-  // In production, use env/config for key/iv
-  private readonly key = crypto.scryptSync('demo_secret_key', 'salt', 32); // 32 bytes for AES-256
-  private readonly iv = Buffer.alloc(16, 0); // 16 bytes IV (all zeros for demo)
+export class EncryptionAdapter {
+  private readonly key: Buffer;
+  private readonly iv: Buffer;
+
+  constructor(encryptionKey: string, encryptionSalt: string) {
+    this.key = crypto.scryptSync(encryptionKey, encryptionSalt, 32); 
+    this.iv = Buffer.alloc(16, 0); 
+  }
 
   encrypt(plain: string): string {
     const cipher = crypto.createCipheriv('aes-256-cbc', this.key, this.iv);

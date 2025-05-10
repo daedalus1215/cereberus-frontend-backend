@@ -5,6 +5,7 @@ import { columns, PasswordEntry } from "./columns/columns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import styles from "./PasswordTable.module.css";
 import api from "@/api/axios.interceptor";
+import { EditableRow } from "./EditableRow/EditableRow";
 
 const fetchPasswords = async (): Promise<PasswordEntry[]> => {
   const res = await api.get("passwords");
@@ -32,18 +33,13 @@ export const PasswordTable: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   // Track which row's password is revealed
   const [revealedId, setRevealedId] = useState<string | null>(null);
-  // Local state for edits (mock, not persisted)
-  const [rows, setRows] = useState<PasswordEntry[]>([]);
 
-  React.useEffect(() => {
-    setRows(data);
-  }, [data]);
 
   const table = useReactTable({
-    data: rows,
+    data,
     columns: columns.map((col: ColumnDef<PasswordEntry>) => {
       // TS: accessorKey is string | undefined
-      if ((col as any).accessorKey === "password") {
+      if ((col as unknown as { accessorKey: string }).accessorKey === "password") {
         return {
           ...col,
           cell: ({ row }: { row: Row<PasswordEntry> }) => {
@@ -106,10 +102,7 @@ export const PasswordTable: React.FC = () => {
                     <EditableRow
                       key={row.id}
                       row={row}
-                      onSave={updated => {
-                        setRows(rows => rows.map(r => (r.id === updated.id ? updated : r)));
-                        setEditingId(null);
-                      }}
+                      onSave={() => {}}
                       onCancel={() => setEditingId(null)}
                     />
                   ) : (
