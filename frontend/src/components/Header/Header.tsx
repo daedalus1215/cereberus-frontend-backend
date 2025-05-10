@@ -5,11 +5,11 @@ import type { FC } from "react";
 const headerStyle: React.CSSProperties = {
   width: "100%",
   padding: "1rem 2rem",
-  background: "#f5f5f5",
+  color: "var(--foreground)",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  borderBottom: "1px solid #e0e0e0",
+  borderBottom: "1px solid var(--foreground)",
 };
 
 const titleStyle: React.CSSProperties = {
@@ -22,7 +22,7 @@ export const Header: FC = () => {
 
   return (
     <header style={headerStyle}>
-      <h1 style={titleStyle}>Cereberus</h1>
+      <h1 style={titleStyle}>Cerberus</h1>
       {isAuthenticated && (
         <Button onClick={logout} variant="outline">
           Logout

@@ -23,20 +23,14 @@ export const LoginPage:React.FC = () => {
     }
   };
 
-  // This effect is now just a safeguard
-  // React.useEffect(() => {
-  //   if (isAuthenticated) {
-  //     navigate('/', { replace: true });
-  //   }
-  // }, [isAuthenticated, navigate]);
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
-    <div className={styles.loginPage}>
-      <h1 className={styles.title}>
-        <Logo height={100} />
-        Sign in to Cerberus
-      </h1>
-      <Login onLogin={handleLogin} />
-    </div>
+    <Login onLogin={handleLogin} />
+
   );
 } 

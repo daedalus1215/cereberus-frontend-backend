@@ -16,17 +16,17 @@ export type PasswordEntry = {
 export const columns: ColumnDef<PasswordEntry>[] = [
   {
     accessorKey: "name",
-    header: "App/Site/Device",
+    header: "acct",
     cell: ({ row }: { row: Row<PasswordEntry> }) => row.getValue("name"),
   },
   {
     accessorKey: "username",
-    header: "Username",
+    header: "user",
     cell: ({ row }: { row: Row<PasswordEntry> }) => row.getValue("username"),
   },
   {
     accessorKey: "password",
-    header: "Password",
+    header: "pass",
     cell: ({ row }: { row: Row<PasswordEntry> }) => {
       // We'll handle reveal logic in the table row state
       const revealed = row.getIsSelected();
@@ -41,7 +41,7 @@ export const columns: ColumnDef<PasswordEntry>[] = [
   },
   {
     accessorKey: "tags",
-    header: "Tags",
+    header: "tags",
     cell: ({ row }: { row: Row<PasswordEntry> }) => {
       const tags = row.getValue("tags") as { id: number, name: string }[];
       return (

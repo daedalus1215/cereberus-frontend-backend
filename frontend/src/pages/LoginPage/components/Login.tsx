@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import styles from './Login.module.css';
 import { Logo } from '../../../components/Logo/Logo';
+import styles from './Login.module.css';
 
 interface LoginProps {
   onLogin: (username: string, password: string) => Promise<boolean>;
