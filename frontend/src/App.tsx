@@ -14,7 +14,6 @@ const ROUTES = {
 }
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
-  console.log('isAuthenticated', isAuthenticated);
   if (isAuthenticated) {
     return (
       <>

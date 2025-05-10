@@ -4,7 +4,6 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  console.log(`NODE_ENV: ${process.env.NODE_ENV}`); // Temporary log
 
   // Set global prefix for all routes
   app.setGlobalPrefix('api');

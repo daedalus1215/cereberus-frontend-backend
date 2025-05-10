@@ -12,7 +12,6 @@ export class FetchPasswordsTransactionScript {
 
   async execute(userId: string): Promise<PasswordResponseDto[]> {
     const passwords = await this.passwordRepo.findAllByUser(userId);
-    console.log('passwordsee', passwords);
     return passwords.map(pw => new PasswordResponseDto({
       id: pw.id,
       name: pw.name,

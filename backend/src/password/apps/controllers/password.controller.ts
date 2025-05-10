@@ -20,7 +20,6 @@ export class PasswordController {
 
   @Get()
   async getAll(@GetAuthUser() user: AuthUser): Promise<PasswordResponseDto[]> {
-    console.log('useree', user);
     return this.getPasswordsTS.execute(user?.userId);
   }
 
@@ -29,7 +28,6 @@ export class PasswordController {
     @Body() dto: AddPasswordDto,
     @GetAuthUser() user: AuthUser
   ): Promise<PasswordResponseDto> {
-    console.log('userdd', user);
     return this.addPasswordTS.execute(user?.userId, dto);
   }
 

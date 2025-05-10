@@ -2,8 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Login } from './components/Login';
 import { useAuth } from '../../auth/useAuth';
-import { Logo } from '../../components/Logo/Logo';
-import styles from './LoginPage.module.css';
 
 export const LoginPage:React.FC = () => {
   const navigate = useNavigate();

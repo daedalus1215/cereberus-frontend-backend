@@ -1,18 +1,14 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/',  // We'll handle the full path in the interceptor
+  baseURL: import.meta.env.VITE_API_URL || '/', 
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor
 api.interceptors.request.use(
   (config) => {
-    console.log('config', config);
-    console.log('config', import.meta.env.VITE_API_URL);
-    // Add /api prefix to all requests except those that already have it
     if (!config.url?.startsWith('/api/')) {
       config.url = `/api/${config.url}`;
     }
@@ -29,27 +25,27 @@ api.interceptors.request.use(
 );
 
 // Response interceptor
-// api.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     if (error.response) {
-//       // Handle specific error cases
-//       switch (error.response.status) {
-//         case 401:
-//           // Handle unauthorized (e.g., redirect to login)
-//           localStorage.removeItem('jwt_token');
-//           window.location.href = '/login';
-//           break;
-//         case 403:
-//           // Handle forbidden
-//           console.error('Forbidden access:', error.response.data);
-//           break;
-//         default:
-//           console.error('API Error:', error.response.data);
-//       }
-//     }
-//     return Promise.reject(error);
-//   }
-// );
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response) {
+      // Handle specific error cases
+      switch (error.response.status) {
+        case 401:
+          // Handle unauthorized (e.g., redirect to login)
+          localStorage.removeItem('jwt_token');
+          window.location.href = '/login';
+          break;
+        case 403:
+          // Handle forbidden
+          console.error('Forbidden access:', error.response.data);
+          break;
+        default:
+          console.error('API Error:', error.response.data);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api; 
