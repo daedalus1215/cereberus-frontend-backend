@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api/',  // We'll handle the full path in the interceptor
+  baseURL: '/',  // We'll handle the full path in the interceptor
   headers: {
     'Content-Type': 'application/json',
   },
