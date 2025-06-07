@@ -1,7 +1,6 @@
 import { createContext, useContext, useCallback, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
-
-import axios from 'axios';
+import api from '../api/axios.interceptor';
 
 type User = {
   id: string;
@@ -38,8 +37,7 @@ export const useAuthProvider = () => {
         username: decoded.username
       };
       return user;
-    } catch (error: unknown) {
-      console.error('Failed to parse token:', error);
+    } catch (error) {
       localStorage.removeItem('jwt_token');
       return null;
     }
@@ -49,7 +47,7 @@ export const useAuthProvider = () => {
 
   const login = useCallback(async (username: string, password: string): Promise<boolean> => {
     try {
-      const response = await axios.post<{ access_token: string }>(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+      const response = await api.post<{ access_token: string }>('/auth/login', {
         username,
         password,
       });
@@ -66,7 +64,7 @@ export const useAuthProvider = () => {
       localStorage.setItem('jwt_token', access_token);
       setUser(userData);
       return true;
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Login failed:', error);
       return false;
     }
@@ -79,13 +77,12 @@ export const useAuthProvider = () => {
 
   const register = useCallback(async (username: string, password: string): Promise<boolean> => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/users/register`, {
+      await api.post('/users/register', {
         username,
         password,
       });
       return true;
-    } catch (error: unknown) {
-      console.error('Login failed:', error);
+    } catch (error) {
       return false;
     }
   }, []);
@@ -104,6 +101,7 @@ export const useAuthProvider = () => {
             id: decoded.sub,
             username: decoded.username
           };
+          console.log('Storage event: updating user state:', userData);
           setUser(userData);
         } catch (error) {
           console.error('Failed to parse updated token:', error);
