@@ -39,7 +39,7 @@ export const EditableRow: React.FC<{
           <input
             className="w-full border rounded px-2 py-1"
             value={edit.tags.map(tag => tag.name).join(", ")}
-            onChange={e => setEdit({ ...edit, tags: e.target.value.split(/,\s*/) })}
+            // onChange={e => setEdit({ ...edit, tags: {value.target.value.split(/,\s*/)} })}
           />
         </TableCell>
         <TableCell>

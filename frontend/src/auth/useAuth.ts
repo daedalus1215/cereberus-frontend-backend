@@ -1,6 +1,6 @@
 import { createContext, useContext, useCallback, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import api from '../api/axios.interceptor';
+
 import axios from 'axios';
 
 type User = {
@@ -38,7 +38,8 @@ export const useAuthProvider = () => {
         username: decoded.username
       };
       return user;
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Failed to parse token:', error);
       localStorage.removeItem('jwt_token');
       return null;
     }
@@ -65,7 +66,8 @@ export const useAuthProvider = () => {
       localStorage.setItem('jwt_token', access_token);
       setUser(userData);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Login failed:', error);
       return false;
     }
   }, []);
@@ -82,7 +84,8 @@ export const useAuthProvider = () => {
         password,
       });
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Login failed:', error);
       return false;
     }
   }, []);
