@@ -3,7 +3,8 @@ import { cn } from "@/lib/utils";
 import { PasswordTable } from "./components/PasswordTable/PasswordTable";
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Button from "@mui/material/Button";
+import Fab from "@mui/material/Fab";
 import api from "@/api/axios.interceptor";
 import type { AxiosError } from "axios";
 
@@ -60,6 +61,7 @@ export function HomePage() {
 
   return (
     <div className={cn(styles.homePage)}>
+
       <main className={cn(styles.homeMain)}>
         <div className="stretchTable">
           <div style={{ width: "100%" }}>
@@ -67,25 +69,20 @@ export function HomePage() {
           </div>
         </div>
       </main>
-      {/* FAB */}
-      <Button
-        variant="default"
-        size="lg"
+
+      <Fab
+        color="primary"
+        aria-label="Add new password"
         style={{
           position: "fixed",
           bottom: 32,
           right: 32,
-          borderRadius: "50%",
-          width: 56,
-          height: 56,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
           zIndex: 1000,
         }}
         onClick={() => setShowModal(true)}
-        aria-label="Add new password"
       >
         <Plus size={28} />
-      </Button>
+      </Fab>
       {/* Modal with Form */}
       {showModal && (
         <div
@@ -174,8 +171,10 @@ export function HomePage() {
                   ))}
                 </div>
               </div>
+    
+
               {error && <div style={{ color: "red", textAlign: "center" }}>{error}</div>}
-              <Button type="submit" disabled={submitting} style={{ marginTop: 8 }}>
+              <Button type="submit" variant="contained" disabled={submitting} style={{ marginTop: 8 }}>
                 {submitting ? "Creating..." : "Create Password"}
               </Button>
             </form>
