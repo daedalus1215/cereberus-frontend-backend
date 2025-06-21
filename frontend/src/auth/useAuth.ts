@@ -37,7 +37,7 @@ export const useAuthProvider = () => {
         username: decoded.username
       };
       return user;
-    } catch (error) {
+    } catch {
       localStorage.removeItem('jwt_token');
       return null;
     }
@@ -82,7 +82,7 @@ export const useAuthProvider = () => {
         password,
       });
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }, []);
