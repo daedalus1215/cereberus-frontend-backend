@@ -22,13 +22,13 @@ const MOCK_TAGS = [
 ];
 
 const modalStyle = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
   width: 400,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
+  bgcolor: "background.paper",
+  border: "2px solid #000",
   boxShadow: 24,
   p: 4,
 };
@@ -39,6 +39,7 @@ export function HomePage() {
     name: "",
     username: "",
     password: "",
+    url: "",
     tagIds: [] as number[],
   });
   const [submitting, setSubmitting] = useState(false);
@@ -58,18 +59,21 @@ export function HomePage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log("form", form);
     e.preventDefault();
     setSubmitting(true);
     setError(null);
     try {
       await api.post("passwords", form);
       setShowModal(false);
-      setForm({ name: "", username: "", password: "", tagIds: [] });
+      setForm({ name: "", username: "", password: "", url: "", tagIds: [] });
       // TODO: trigger table refresh
     } catch (err: unknown) {
       if (err && typeof err === "object" && (err as AxiosError).isAxiosError) {
         const axiosErr = err as AxiosError<{ message?: string }>;
-        setError(axiosErr.response?.data?.message || "Failed to create password");
+        setError(
+          axiosErr.response?.data?.message || "Failed to create password"
+        );
       } else {
         setError("Failed to create password");
       }
@@ -79,7 +83,7 @@ export function HomePage() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Container component="main" maxWidth="lg" sx={{ py: 3, flexGrow: 1 }}>
         <PasswordTable />
       </Container>
@@ -108,7 +112,7 @@ export function HomePage() {
             aria-label="close"
             onClick={() => setShowModal(false)}
             sx={{
-              position: 'absolute',
+              position: "absolute",
               right: 8,
               top: 8,
               color: (theme) => theme.palette.grey[500],
@@ -117,8 +121,21 @@ export function HomePage() {
           >
             <CloseIcon />
           </IconButton>
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 16 }}>
-            <Typography id="create-password-modal-title" variant="h6" component="h2" sx={{ textAlign: "center", mb: 2 }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+              marginTop: 16,
+            }}
+          >
+            <Typography
+              id="create-password-modal-title"
+              variant="h6"
+              component="h2"
+              sx={{ textAlign: "center", mb: 2 }}
+            >
               Create New Password
             </Typography>
             <TextField
@@ -140,6 +157,15 @@ export function HomePage() {
               fullWidth
             />
             <TextField
+              name="url"
+              label="URL"
+              value={form.url}
+              onChange={handleChange}
+              required
+              disabled={submitting}
+              fullWidth
+            />
+            <TextField
               name="password"
               label="Password"
               type="password"
@@ -150,7 +176,9 @@ export function HomePage() {
               fullWidth
             />
             <div>
-              <Typography variant="body2" sx={{ mb: 1 }}>Tags:</Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                Tags:
+              </Typography>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {MOCK_TAGS.map((tag) => (
                   <FormControlLabel
@@ -168,9 +196,17 @@ export function HomePage() {
               </div>
             </div>
 
-
-            {error && <Typography color="error" sx={{ textAlign: 'center' }}>{error}</Typography>}
-            <Button type="submit" variant="contained" disabled={submitting} sx={{ mt: 1 }}>
+            {error && (
+              <Typography color="error" sx={{ textAlign: "center" }}>
+                {error}
+              </Typography>
+            )}
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={submitting}
+              sx={{ mt: 1 }}
+            >
               {submitting ? "Creating..." : "Create Password"}
             </Button>
           </form>
