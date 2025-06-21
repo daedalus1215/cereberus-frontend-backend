@@ -380,15 +380,3 @@ export const PasswordTable: React.FC = () => {
     </>
   );
 };
-
-// Add responsive column visibility
-const getVisibleColumns = (isMobile: boolean) => {
-  if (isMobile) {
-    return [
-      { accessorKey: "name", header: "Account" },
-      { accessorKey: "password", header: "Password" },
-      { id: "actions", header: "Actions" },
-    ];
-  }
-  return columns;
-};
