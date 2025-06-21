@@ -18,4 +18,8 @@ export class AddPasswordDto {
   @ArrayUnique()
   @IsInt({ each: true })
   tagIds?: number[];
+
+  @IsOptional()
+  @IsString()
+  url?: string;
 } 

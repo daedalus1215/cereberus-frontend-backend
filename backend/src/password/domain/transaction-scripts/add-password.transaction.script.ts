@@ -28,6 +28,7 @@ export class AddPasswordTransactionScript {
     password.password = this.encryption.encrypt(dto.password);
     password.user_id = userId;
     password.tags = tags;
+    password.url = dto.url;
     const saved = await this.passwordRepo.save(password);
 
 

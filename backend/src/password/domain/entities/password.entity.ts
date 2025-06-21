@@ -31,4 +31,7 @@ export class Password {
     inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' }
   })
   tags: Tag[];
+
+  @Column({ nullable: true })
+  url?: string;
 } 

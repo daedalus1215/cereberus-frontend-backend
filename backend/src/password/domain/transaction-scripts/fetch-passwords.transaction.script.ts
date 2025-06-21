@@ -12,6 +12,7 @@ export class FetchPasswordsTransactionScript {
 
   async execute(userId: string): Promise<PasswordResponseDto[]> {
     const passwords = await this.passwordRepo.findAllByUser(userId);
+    //@TODO: Move converter to app level
     return passwords.map(pw => new PasswordResponseDto({
       id: pw.id,
       name: pw.name,
@@ -19,7 +20,8 @@ export class FetchPasswordsTransactionScript {
       password: this.encryption.decrypt(pw.password),
       created_date: pw.created_date,
       last_modified_date: pw.last_modified_date,
-      tags: pw.tags
+      tags: pw.tags,
+      url: pw.url
     }));
   }
 } 

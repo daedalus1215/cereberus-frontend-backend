@@ -8,7 +8,8 @@ export class PasswordResponseDto {
   created_date: Date;
   last_modified_date: Date;
   tags: {id: number, name: string}[];
-
+  url?: string;
+  
   constructor(partial: Partial<PasswordResponseDto>) {
     Object.assign(this, partial);
   }
