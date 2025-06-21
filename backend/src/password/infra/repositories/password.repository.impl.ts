@@ -11,11 +11,11 @@ export class PasswordRepositoryImpl {
   ) {}
 
   async findAllByUser(userId: string): Promise<Password[]> {
-    return this.repo.find({ where: { user_id: userId }, relations: ['tags'] });
+    return this.repo.find({ where: { userId: userId }, relations: ['tags'] });
   }
 
   async findByIdAndUser(id: number, userId: string): Promise<Password | null> {
-    return this.repo.findOne({ where: { id, user_id: userId }, relations: ['tags'] });
+    return this.repo.findOne({ where: { id, userId: userId }, relations: ['tags'] });
   }
 
   async save(password: Password): Promise<Password> {

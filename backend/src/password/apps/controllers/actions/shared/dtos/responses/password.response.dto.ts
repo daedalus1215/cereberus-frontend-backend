@@ -5,10 +5,11 @@ export class PasswordResponseDto {
   name: string;
   username: string;
   password: string; // decrypted
-  created_date: Date;
-  last_modified_date: Date;
+  createdDate: Date;
+  lastModifiedDate: Date;
   tags: {id: number, name: string}[];
   url?: string;
+  notes?: string;
   
   constructor(partial: Partial<PasswordResponseDto>) {
     Object.assign(this, partial);

@@ -10,6 +10,7 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
+    console.log('config', config);
     // Add /api prefix to all requests except those that already have it
     if (!config.url?.startsWith('/api')) {
       config.url = `/api/${config.url}`;

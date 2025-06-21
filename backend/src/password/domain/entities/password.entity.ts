@@ -16,13 +16,13 @@ export class Password {
   password: string; // encrypted
 
   @CreateDateColumn({ name: 'created_date' })
-  created_date: Date;
+  createdDate: Date;
 
   @UpdateDateColumn({ name: 'last_modified_date' })
-  last_modified_date: Date;
+  lastModifiedDate: Date;
 
-  @Column()
-  user_id: string;
+  @Column({name: 'user_id'})
+  userId: string;
 
   @ManyToMany(() => Tag, tag => tag.passwords, { cascade: true })
   @JoinTable({
@@ -34,4 +34,7 @@ export class Password {
 
   @Column({ nullable: true })
   url?: string;
+
+  @Column({ nullable: true })
+  notes?: string;
 } 

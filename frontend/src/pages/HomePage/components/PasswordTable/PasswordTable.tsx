@@ -33,7 +33,12 @@ export type PasswordEntry = {
   username: string;
   password: string;
   url: string;
+  notes?: string;
   tags: { id: number; name: string }[];
+};
+
+type PasswordTableProps = {
+  onEdit: (password: PasswordEntry) => void;
 };
 
 const columns = [
@@ -48,7 +53,7 @@ const fetchPasswords = async (): Promise<PasswordEntry[]> => {
   return res.data;
 };
 
-export const PasswordTable: React.FC = () => {
+export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
@@ -57,7 +62,6 @@ export const PasswordTable: React.FC = () => {
     queryFn: fetchPasswords,
   });
 
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [revealedId, setRevealedId] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<null | string>(null);
@@ -75,7 +79,10 @@ export const PasswordTable: React.FC = () => {
 
   const handleEdit = () => {
     if (selectedRowId) {
-      setEditingId(selectedRowId);
+      const passwordToEdit = data.find((p) => p.id === selectedRowId);
+      if (passwordToEdit) {
+        onEdit(passwordToEdit);
+      }
     }
     handleMenuClose();
   };
@@ -245,6 +252,17 @@ export const PasswordTable: React.FC = () => {
                       </Box>
                     )}
                     
+                    {row.notes && (
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
+                          Notes:
+                        </Typography>
+                        <Typography variant="body2" sx={{ wordBreak: 'break-all', flex: 1 }}>
+                          {row.notes}
+                        </Typography>
+                      </Box>
+                    )}
+                    
                     {row.tags.length > 0 && (
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
                         {row.tags.map(tag => (
@@ -308,41 +326,28 @@ export const PasswordTable: React.FC = () => {
           </TableHead>
           <TableBody>
             {data.length > 0 ? (
-              data.map((row) =>
-                editingId === row.id ? (
-                  <TableRow key={row.id}>
-                    <TableCell colSpan={columns.length}>
-                      <input
-                        type="text"
-                        defaultValue={row.name}
-                        onBlur={() => setEditingId(null)}
-                        autoFocus
-                      />
+              data.map((row) => (
+                <TableRow key={row.id}>
+                  {columns.map((column) => (
+                    <TableCell key={column.accessorKey || column.id}>
+                      {column.id === "actions" ? (
+                        <>
+                          <IconButton
+                            aria-label="more"
+                            aria-controls="long-menu"
+                            aria-haspopup="true"
+                            onClick={(e) => handleMenuClick(e, row.id)}
+                          >
+                            <MoreVert />
+                          </IconButton>
+                        </>
+                      ) : (
+                        renderCellContent(row, column)
+                      )}
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  <TableRow key={row.id}>
-                    {columns.map((column) => (
-                      <TableCell key={column.accessorKey || column.id}>
-                        {column.id === 'actions' ? (
-                          <>
-                            <IconButton
-                              aria-label="more"
-                              aria-controls="long-menu"
-                              aria-haspopup="true"
-                              onClick={(e) => handleMenuClick(e, row.id)}
-                            >
-                              <MoreVert />
-                            </IconButton>
-                          </>
-                        ) : (
-                          renderCellContent(row, column)
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                )
-              )
+                  ))}
+                </TableRow>
+              ))
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} align="center">

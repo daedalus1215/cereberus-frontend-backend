@@ -13,9 +13,11 @@ import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import Container from "@mui/material/Container";
 import { useTheme } from "@mui/material/styles";
-import { useMediaQuery } from "@mui/material";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import api from "@/api/axios.interceptor";
 import type { AxiosError } from "axios";
+import { useQueryClient } from "@tanstack/react-query";
+import type { PasswordEntry } from "./components/PasswordTable/PasswordTable";
 
 const MOCK_TAGS = [
   { id: 1, name: "work" },
@@ -26,18 +28,49 @@ const MOCK_TAGS = [
 export function HomePage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
+  const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(
+    null
+  );
   const [form, setForm] = useState({
     name: "",
     username: "",
     password: "",
     url: "",
+    notes: "",
     tagIds: [] as number[],
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOpenCreateModal = () => {
+    setEditingPassword(null);
+    setForm({ name: "", username: "", password: "", url: "", notes: "", tagIds: [] });
+    setShowModal(true);
+  };
+
+  const handleOpenEditModal = (password: PasswordEntry) => {
+    setEditingPassword(password);
+    setForm({
+      name: password.name,
+      username: password.username,
+      password: "", // Should we prefill password? For security, maybe not.
+      url: password.url,
+      notes: password.notes || "",
+      tagIds: password.tags.map((t) => t.id),
+    });
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingPassword(null);
+    setError(null);
+    setForm({ name: "", username: "", password: "", url: "", notes: "", tagIds: [] });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -55,19 +88,29 @@ export function HomePage() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+
+    const submissionForm = { ...form };
+    if (editingPassword && !submissionForm.password) {
+      delete (submissionForm as Partial<typeof submissionForm>).password;
+    }
+
     try {
-      await api.post("passwords", form);
-      setShowModal(false);
-      setForm({ name: "", username: "", password: "", url: "", tagIds: [] });
-      // TODO: trigger table refresh
+      if (editingPassword) {
+        await api.put(`passwords/${editingPassword.id}`, submissionForm);
+      } else {
+        await api.post("passwords", form);
+      }
+      queryClient.invalidateQueries({ queryKey: ["passwords"] });
+      handleCloseModal();
     } catch (err: unknown) {
       if (err && typeof err === "object" && (err as AxiosError).isAxiosError) {
         const axiosErr = err as AxiosError<{ message?: string }>;
         setError(
-          axiosErr.response?.data?.message || "Failed to create password"
+          axiosErr.response?.data?.message ||
+            `Failed to ${editingPassword ? "update" : "create"} password`
         );
       } else {
-        setError("Failed to create password");
+        setError(`Failed to ${editingPassword ? "update" : "create"} password`);
       }
     } finally {
       setSubmitting(false);
@@ -93,7 +136,7 @@ export function HomePage() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Container component="main" maxWidth="lg" sx={{ py: 3, flexGrow: 1 }}>
-        <PasswordTable />
+        <PasswordTable onEdit={handleOpenEditModal} />
       </Container>
 
       <Fab
@@ -105,7 +148,7 @@ export function HomePage() {
           right: 32,
           zIndex: 1000,
         }}
-        onClick={() => setShowModal(true)}
+        onClick={handleOpenCreateModal}
       >
         <Plus size={28} />
       </Fab>
@@ -113,13 +156,13 @@ export function HomePage() {
       {/* Modal with Form */}
       <Modal
         open={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={handleCloseModal}
         aria-labelledby="create-password-modal-title"
       >
         <Box sx={getModalStyle()}>
           <IconButton
             aria-label="close"
-            onClick={() => setShowModal(false)}
+            onClick={handleCloseModal}
             sx={{
               position: "absolute",
               right: 8,
@@ -149,7 +192,7 @@ export function HomePage() {
                 fontSize: isMobile ? "1.1rem" : "inherit"
               }}
             >
-              Create New Password
+              {editingPassword ? "Edit Password" : "Create New Password"}
             </Typography>
             
             <TextField
@@ -191,10 +234,23 @@ export function HomePage() {
               type="password"
               value={form.password}
               onChange={handleChange}
-              required
+              required={!editingPassword}
               disabled={submitting}
               fullWidth
               size={isMobile ? "small" : "medium"}
+            />
+            
+            <TextField
+              name="notes"
+              label="Notes"
+              value={form.notes}
+              onChange={handleChange}
+              disabled={submitting}
+              fullWidth
+              multiline
+              rows={isMobile ? 2 : 3}
+              size={isMobile ? "small" : "medium"}
+              placeholder="Optional notes about this password..."
             />
             
             <div>
@@ -244,7 +300,9 @@ export function HomePage() {
                 fontSize: isMobile ? "0.875rem" : "inherit"
               }}
             >
-              {submitting ? "Creating..." : "Create Password"}
+              {submitting
+                ? `${editingPassword ? "Updating" : "Creating"}...`
+                : `${editingPassword ? "Update" : "Create"} Password`}
             </Button>
           </form>
         </Box>
