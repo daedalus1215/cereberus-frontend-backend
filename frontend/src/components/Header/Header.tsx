@@ -1,6 +1,6 @@
 import { useAuth } from "@/auth/useAuth";
-import { Button } from "@/components/ui/button";
 import type { FC } from "react";
+import Button from "@mui/material/Button";
 
 const headerStyle: React.CSSProperties = {
   width: "100%",
@@ -8,13 +8,8 @@ const headerStyle: React.CSSProperties = {
   color: "var(--foreground)",
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-between",
+  justifyContent: "end",
   borderBottom: "1px solid var(--foreground)",
-};
-
-const titleStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: "1.5rem",
 };
 
 export const Header: FC = () => {
@@ -22,9 +17,8 @@ export const Header: FC = () => {
 
   return (
     <header style={headerStyle}>
-      <h1 style={titleStyle}>Cerberus</h1>
       {isAuthenticated && (
-        <Button onClick={logout} variant="outline">
+        <Button onClick={logout} variant="outlined" size="small">
           Logout
         </Button>
       )}
