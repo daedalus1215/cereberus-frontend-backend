@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PasswordRepositoryImpl } from '../../infra/repositories/password.repository.impl';
 import { TagRepositoryImpl } from '../../infra/repositories/tag.repository.impl';
-import { UpdatePasswordDto } from '../../apps/dtos/requests/update-password.dto';
-import { PasswordResponseDto } from '../../apps/dtos/responses/password.response.dto';
+import { UpdatePasswordDto } from '../../apps/controllers/actions/update-password-action/dtos/requests/update-password.dto';
 import { EncryptionAdapter } from '../../infra/encryption/encryption.adapter';
+import { Password } from '../entities/password.entity';
 
 @Injectable()
 export class UpdatePasswordTransactionScript {
@@ -13,7 +13,7 @@ export class UpdatePasswordTransactionScript {
     private readonly encryption: EncryptionAdapter
   ) {}
 
-  async execute(userId: string, id: number, dto: UpdatePasswordDto): Promise<PasswordResponseDto> {
+  async apply(userId: string, id: number, dto: UpdatePasswordDto): Promise<Password> {
     const password = await this.passwordRepo.findByIdAndUser(id, userId);
     if (!password) throw new NotFoundException('Password not found');
 
@@ -27,16 +27,9 @@ export class UpdatePasswordTransactionScript {
       }
       password.tags = tags;
     }
+    if (dto.notes !== undefined) password.notes = dto.notes;
+    if (dto.url !== undefined) password.url = dto.url;
     // last_modified_date will be updated automatically by TypeORM
-    const saved = await this.passwordRepo.update(password);
-    return new PasswordResponseDto({
-      id: saved.id,
-      name: saved.name,
-      username: saved.username,
-      password: dto.password ?? this.encryption.decrypt(saved.password),
-      created_date: saved.created_date,
-      last_modified_date: saved.last_modified_date,
-      tags: saved.tags?.map(tag => ({id: tag.id, name: tag.name})) || []
-    });
+    return await this.passwordRepo.update(password);
   }
 } 

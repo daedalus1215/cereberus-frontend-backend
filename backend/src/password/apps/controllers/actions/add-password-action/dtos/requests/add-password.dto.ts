@@ -22,4 +22,8 @@ export class AddPasswordDto {
   @IsOptional()
   @IsString()
   url?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 } 
