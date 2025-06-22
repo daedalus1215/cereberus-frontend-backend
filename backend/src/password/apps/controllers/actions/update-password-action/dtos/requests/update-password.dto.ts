@@ -1,10 +1,6 @@
-import { IsString, IsOptional, IsArray, ArrayNotEmpty, ArrayUnique, IsInt, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsArray, ArrayUnique, IsInt } from 'class-validator';
 
 export class UpdatePasswordDto {
-  @IsNotEmpty()
-  @IsInt()
-  id: number;
-
   @IsOptional()
   @IsString()
   name?: string;
@@ -19,7 +15,6 @@ export class UpdatePasswordDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @ArrayUnique()
   @IsInt({ each: true })
   tagIds?: number[];

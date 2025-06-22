@@ -17,7 +17,8 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import api from "@/api/axios.interceptor";
 import type { AxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
-import type { PasswordEntry } from "./components/PasswordTable/PasswordTable";
+import type { PasswordEntry } from "./components/PasswordTable/types";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const MOCK_TAGS = [
   { id: 1, name: "work" },
@@ -43,6 +44,7 @@ export function HomePage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleOpenCreateModal = () => {
     setEditingPassword(null);
@@ -55,11 +57,12 @@ export function HomePage() {
     setForm({
       name: password.name,
       username: password.username,
-      password: "", // Should we prefill password? For security, maybe not.
+      password: password.password,
       url: password.url,
       notes: password.notes || "",
       tagIds: password.tags.map((t) => t.id),
     });
+    setShowPassword(false);
     setShowModal(true);
   };
 
@@ -96,7 +99,7 @@ export function HomePage() {
 
     try {
       if (editingPassword) {
-        await api.put(`passwords/${editingPassword.id}`, submissionForm);
+        await api.patch(`passwords/${editingPassword.id}`, submissionForm);
       } else {
         await api.post("passwords", form);
       }
@@ -231,13 +234,25 @@ export function HomePage() {
             <TextField
               name="password"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={form.password}
               onChange={handleChange}
               required={!editingPassword}
               disabled={submitting}
               fullWidth
               size={isMobile ? "small" : "medium"}
+              placeholder={editingPassword ? "Enter new password or leave unchanged" : ""}
+              InputProps={{
+                endAdornment: (
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              }}
             />
             
             <TextField

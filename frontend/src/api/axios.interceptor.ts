@@ -40,8 +40,10 @@ api.interceptors.response.use(
           window.location.href = '/login';
           break;
         case 403:
-          // Handle forbidden
           console.error('Forbidden access:', error.response.data);
+          break;
+        case 404:
+          console.error('Not found:', error.response.data.error);
           break;
         default:
           console.error('API Error:', error.response.data);
