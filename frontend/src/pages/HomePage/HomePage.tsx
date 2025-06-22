@@ -3,14 +3,12 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import Button from "@mui/material/Button";
 import Fab from "@mui/material/Fab";
-import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
-import CloseIcon from "@mui/icons-material/Close";
 import Container from "@mui/material/Container";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -19,6 +17,8 @@ import type { AxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import type { PasswordEntry } from "./components/PasswordTable/types";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Modal } from "@/components/Modal/Modal";
+import { FlexibleTextField } from "@/components/FlexibleTextField/FlexibleTextField";
 
 const MOCK_TAGS = [
   { id: 1, name: "work" },
@@ -28,7 +28,7 @@ const MOCK_TAGS = [
 
 export function HomePage() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(
@@ -48,7 +48,14 @@ export function HomePage() {
 
   const handleOpenCreateModal = () => {
     setEditingPassword(null);
-    setForm({ name: "", username: "", password: "", url: "", notes: "", tagIds: [] });
+    setForm({
+      name: "",
+      username: "",
+      password: "",
+      url: "",
+      notes: "",
+      tagIds: [],
+    });
     setShowModal(true);
   };
 
@@ -70,10 +77,19 @@ export function HomePage() {
     setShowModal(false);
     setEditingPassword(null);
     setError(null);
-    setForm({ name: "", username: "", password: "", url: "", notes: "", tagIds: [] });
+    setForm({
+      name: "",
+      username: "",
+      password: "",
+      url: "",
+      notes: "",
+      tagIds: [],
+    });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -120,22 +136,6 @@ export function HomePage() {
     }
   };
 
-  // Responsive modal styles
-  const getModalStyle = () => ({
-    position: "absolute" as const,
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: isMobile ? "90vw" : 400,
-    maxWidth: isMobile ? "none" : 400,
-    maxHeight: isMobile ? "90vh" : "80vh",
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: isMobile ? 2 : 4,
-    overflow: "auto",
-  });
-
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Container component="main" maxWidth="lg" sx={{ py: 3, flexGrow: 1 }}>
@@ -155,172 +155,158 @@ export function HomePage() {
       >
         <Plus size={28} />
       </Fab>
-      
-      {/* Modal with Form */}
+
       <Modal
-        open={showModal}
-        onClose={handleCloseModal}
+        isModalShowing={showModal}
+        handleCloseModal={handleCloseModal}
+        isClosedButtonDisabled={submitting}
         aria-labelledby="create-password-modal-title"
       >
-        <Box sx={getModalStyle()}>
-          <IconButton
-            aria-label="close"
-            onClick={handleCloseModal}
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: isMobile ? 12 : 16,
+            marginTop: 16,
+          }}
+        >
+          <Typography
+            id="create-password-modal-title"
+            variant={isMobile ? "h6" : "h5"}
+            component="h2"
             sx={{
-              position: "absolute",
-              right: 8,
-              top: 8,
-              color: (theme) => theme.palette.grey[500],
-            }}
-            disabled={submitting}
-          >
-            <CloseIcon />
-          </IconButton>
-          <form
-            onSubmit={handleSubmit}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: isMobile ? 12 : 16,
-              marginTop: 16,
+              textAlign: "center",
+              mb: isMobile ? 1 : 2,
+              fontSize: isMobile ? "1.1rem" : "inherit",
             }}
           >
-            <Typography
-              id="create-password-modal-title"
-              variant={isMobile ? "h6" : "h5"}
-              component="h2"
-              sx={{ 
-                textAlign: "center", 
-                mb: isMobile ? 1 : 2,
-                fontSize: isMobile ? "1.1rem" : "inherit"
-              }}
-            >
-              {editingPassword ? "Edit Password" : "Create New Password"}
-            </Typography>
-            
-            <TextField
-              name="name"
-              label="App/Site/Device Name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              disabled={submitting}
-              fullWidth
-              size={isMobile ? "small" : "medium"}
-            />
-            
-            <TextField
-              name="username"
-              label="Username"
-              value={form.username}
-              onChange={handleChange}
-              required
-              disabled={submitting}
-              fullWidth
-              size={isMobile ? "small" : "medium"}
-            />
-            
-            <TextField
-              name="url"
-              label="URL"
-              value={form.url}
-              onChange={handleChange}
-              required
-              disabled={submitting}
-              fullWidth
-              size={isMobile ? "small" : "medium"}
-            />
-            
-            <TextField
-              name="password"
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              value={form.password}
-              onChange={handleChange}
-              required={!editingPassword}
-              disabled={submitting}
-              fullWidth
-              size={isMobile ? "small" : "medium"}
-              placeholder={editingPassword ? "Enter new password or leave unchanged" : ""}
-              InputProps={{
-                endAdornment: (
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                ),
-              }}
-            />
-            
-            <TextField
-              name="notes"
-              label="Notes"
-              value={form.notes}
-              onChange={handleChange}
-              disabled={submitting}
-              fullWidth
-              multiline
-              rows={isMobile ? 2 : 3}
-              size={isMobile ? "small" : "medium"}
-              placeholder="Optional notes about this password..."
-            />
-            
-            <div>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                Tags:
-              </Typography>
-              <div style={{ 
-                display: "flex", 
-                gap: isMobile ? 4 : 8, 
-                flexWrap: "wrap",
-                flexDirection: isMobile ? "column" : "row"
-              }}>
-                {MOCK_TAGS.map((tag) => (
-                  <FormControlLabel
-                    key={tag.id}
-                    control={
-                      <Checkbox
-                        checked={form.tagIds.includes(tag.id)}
-                        onChange={() => handleTagToggle(tag.id)}
-                        disabled={submitting}
-                        size={isMobile ? "small" : "medium"}
-                      />
-                    }
-                    label={tag.name}
-                    sx={{ 
-                      fontSize: isMobile ? "0.875rem" : "inherit",
-                      margin: isMobile ? "2px 0" : "inherit"
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
+            {editingPassword ? "Edit Password" : "Create New Password"}
+          </Typography>
 
-            {error && (
-              <Typography color="error" sx={{ textAlign: "center", fontSize: isMobile ? "0.875rem" : "inherit" }}>
-                {error}
-              </Typography>
-            )}
-            
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={submitting}
-              sx={{ 
-                mt: 1,
-                py: isMobile ? 1.5 : 1,
-                fontSize: isMobile ? "0.875rem" : "inherit"
+          <FlexibleTextField
+            name="name"
+            label="App/Site/Device Name"
+            value={form.name}
+            handleChange={handleChange}
+            isDisabled={submitting}
+          />
+
+          <FlexibleTextField
+            name="username"
+            label="Username"
+            value={form.username}
+            handleChange={handleChange}
+            isDisabled={submitting}
+          />
+
+<FlexibleTextField
+            name="url"
+            label="URL"
+            value={form.url}
+            handleChange={handleChange}
+            isDisabled={submitting}
+          />
+          
+          <TextField
+            name="password"
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            value={form.password}
+            onChange={handleChange}
+            required={!editingPassword}
+            disabled={submitting}
+            fullWidth
+            size={isMobile ? "small" : "medium"}
+            placeholder={
+              editingPassword ? "Enter new password or leave unchanged" : ""
+            }
+            InputProps={{
+              endAdornment: (
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              ),
+            }}
+          />
+
+          <TextField
+            name="notes"
+            label="Notes"
+            value={form.notes}
+            onChange={handleChange}
+            disabled={submitting}
+            fullWidth
+            multiline
+            rows={isMobile ? 2 : 3}
+            size={isMobile ? "small" : "medium"}
+            placeholder="Optional notes about this password..."
+          />
+
+          <div>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              Tags:
+            </Typography>
+            <div
+              style={{
+                display: "flex",
+                gap: isMobile ? 4 : 8,
+                flexWrap: "wrap",
+                flexDirection: isMobile ? "column" : "row",
               }}
             >
-              {submitting
-                ? `${editingPassword ? "Updating" : "Creating"}...`
-                : `${editingPassword ? "Update" : "Create"} Password`}
-            </Button>
-          </form>
-        </Box>
+              {MOCK_TAGS.map((tag) => (
+                <FormControlLabel
+                  key={tag.id}
+                  control={
+                    <Checkbox
+                      checked={form.tagIds.includes(tag.id)}
+                      onChange={() => handleTagToggle(tag.id)}
+                      disabled={submitting}
+                      size={isMobile ? "small" : "medium"}
+                    />
+                  }
+                  label={tag.name}
+                  sx={{
+                    fontSize: isMobile ? "0.875rem" : "inherit",
+                    margin: isMobile ? "2px 0" : "inherit",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {error && (
+            <Typography
+              color="error"
+              sx={{
+                textAlign: "center",
+                fontSize: isMobile ? "0.875rem" : "inherit",
+              }}
+            >
+              {error}
+            </Typography>
+          )}
+
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={submitting}
+            sx={{
+              mt: 1,
+              py: isMobile ? 1.5 : 1,
+              fontSize: isMobile ? "0.875rem" : "inherit",
+            }}
+          >
+            {submitting
+              ? `${editingPassword ? "Updating" : "Creating"}...`
+              : `${editingPassword ? "Update" : "Create"} Password`}
+          </Button>
+        </form>
       </Modal>
     </Box>
   );
