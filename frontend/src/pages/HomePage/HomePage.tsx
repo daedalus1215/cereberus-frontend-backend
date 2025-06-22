@@ -10,15 +10,15 @@ import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import Container from "@mui/material/Container";
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import api from "@/api/axios.interceptor";
 import type { AxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import type { PasswordEntry } from "./components/PasswordTable/types";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Modal } from "@/components/Modal/Modal";
-import { FlexibleTextField } from "@/components/FlexibleTextField/FlexibleTextField";
+import { Modal } from "@/pages/HomePage/components/Modal";
+import { FlexibleTextField } from "@/pages/HomePage/components/FlexibleTextField";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { PasswordField } from "./components/PasswordField";
 
 const MOCK_TAGS = [
   { id: 1, name: "work" },
@@ -27,8 +27,7 @@ const MOCK_TAGS = [
 ];
 
 export function HomePage() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(
@@ -200,38 +199,22 @@ export function HomePage() {
             isDisabled={submitting}
           />
 
-<FlexibleTextField
+          <FlexibleTextField
             name="url"
             label="URL"
             value={form.url}
             handleChange={handleChange}
             isDisabled={submitting}
           />
-          
-          <TextField
-            name="password"
-            label="Password"
-            type={showPassword ? "text" : "password"}
+
+          <PasswordField
+            isPasswordShowing={showPassword}
+            setIsPasswordShowing={setShowPassword}
             value={form.password}
-            onChange={handleChange}
-            required={!editingPassword}
-            disabled={submitting}
-            fullWidth
-            size={isMobile ? "small" : "medium"}
-            placeholder={
-              editingPassword ? "Enter new password or leave unchanged" : ""
-            }
-            InputProps={{
-              endAdornment: (
-                <IconButton
-                  aria-label="toggle password visibility"
-                  onClick={() => setShowPassword(!showPassword)}
-                  edge="end"
-                >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              ),
-            }}
+            handleChange={handleChange}
+            required={false}
+            isDisabled={submitting}
+            isEditingPassword={!!editingPassword}
           />
 
           <TextField
