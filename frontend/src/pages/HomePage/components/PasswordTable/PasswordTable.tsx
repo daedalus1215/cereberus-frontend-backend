@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CircularProgress, Typography, Box } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import api from "@/api/axios.interceptor";
 import { PasswordCard } from "./PasswordCard";
 import { PasswordTableDesktop } from "./PasswordTableDesktop";
 import { PasswordActions } from "./PasswordActions";
 import type { PasswordEntry, PasswordTableProps, Column } from "./types";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const columns: Column[] = [
   { accessorKey: "name", header: "Account" },
@@ -22,8 +21,7 @@ const fetchPasswords = async (): Promise<PasswordEntry[]> => {
 };
 
 export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useIsMobile();
   
   const { data = [], isLoading, error } = useQuery<PasswordEntry[]>({
     queryKey: ["passwords"],
