@@ -17,6 +17,7 @@ type PasswordTableDesktopProps = {
   data: PasswordEntry[];
   columns: Column[];
   revealedId: string | null;
+  isLoadingPassword?: boolean;
   onRevealToggle: (id: string) => void;
   onCopyPassword: (password: string) => void;
   onMenuClick: (event: React.MouseEvent<HTMLElement>, id: string) => void;
@@ -26,6 +27,7 @@ export const PasswordTableDesktop: React.FC<PasswordTableDesktopProps> = ({
   data,
   columns,
   revealedId,
+  isLoadingPassword = false,
   onRevealToggle,
   onCopyPassword,
   onMenuClick,
@@ -62,6 +64,7 @@ export const PasswordTableDesktop: React.FC<PasswordTableDesktopProps> = ({
                         row={row}
                         column={column}
                         revealedId={revealedId}
+                        isLoadingPassword={isLoadingPassword && revealedId === row.id}
                         onRevealToggle={onRevealToggle}
                         onCopyPassword={onCopyPassword}
                       />

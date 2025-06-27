@@ -7,6 +7,7 @@ import {
   Box,
   Chip,
   Tooltip,
+  CircularProgress,
 } from "@mui/material";
 import { MoreVert, Visibility, VisibilityOff, ContentCopy, Link as LinkIcon } from "@mui/icons-material";
 import type { PasswordEntry } from "./types";
@@ -14,6 +15,7 @@ import type { PasswordEntry } from "./types";
 type PasswordCardProps = {
   password: PasswordEntry;
   revealedId: string | null;
+  isLoadingPassword?: boolean;
   onRevealToggle: (id: string) => void;
   onCopyPassword: (password: string) => void;
   onMenuClick: (event: React.MouseEvent<HTMLElement>, id: string) => void;
@@ -22,6 +24,7 @@ type PasswordCardProps = {
 export const PasswordCard: React.FC<PasswordCardProps> = ({
   password,
   revealedId,
+  isLoadingPassword = false,
   onRevealToggle,
   onCopyPassword,
   onMenuClick,
@@ -58,23 +61,40 @@ export const PasswordCard: React.FC<PasswordCardProps> = ({
               Password:
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
-              <span
-                style={{ 
-                  filter: isRevealed ? 'none' : 'blur(6px)', 
-                  cursor: 'pointer',
-                  flex: 1
-                }}
-                onClick={() => onRevealToggle(password.id)}
-              >
-                {password.password}
-              </span>
+              {isLoadingPassword ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={16} />
+                  <Typography variant="body2" color="text.secondary">
+                    Loading password...
+                  </Typography>
+                </Box>
+              ) : (
+                <span
+                  style={{ 
+                    filter: isRevealed ? 'none' : 'blur(6px)', 
+                    cursor: 'pointer',
+                    flex: 1
+                  }}
+                  onClick={() => onRevealToggle(password.id)}
+                >
+                  {password.password}
+                </span>
+              )}
               <Tooltip title={isRevealed ? "Hide password" : "Show password"}>
-                <IconButton size="small" onClick={() => onRevealToggle(password.id)}>
+                <IconButton 
+                  size="small" 
+                  onClick={() => onRevealToggle(password.id)}
+                  disabled={isLoadingPassword}
+                >
                   {isRevealed ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                 </IconButton>
               </Tooltip>
               <Tooltip title="Copy password">
-                <IconButton size="small" onClick={() => onCopyPassword(password.password)}>
+                <IconButton 
+                  size="small" 
+                  onClick={() => onCopyPassword(password.password)}
+                  disabled={isLoadingPassword}
+                >
                   <ContentCopy fontSize="small" />
                 </IconButton>
               </Tooltip>

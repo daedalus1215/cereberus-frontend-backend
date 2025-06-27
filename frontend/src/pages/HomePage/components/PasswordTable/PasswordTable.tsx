@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircularProgress, Typography, Box } from "@mui/material";
-import api from "@/api/axios.interceptor";
+import { fetchPasswords, fetchPassword } from "@/api/passwords";
 import { PasswordCard } from "./PasswordCard";
 import { PasswordTableDesktop } from "./PasswordTableDesktop";
 import { PasswordActions } from "./PasswordActions";
@@ -15,13 +15,9 @@ const columns: Column[] = [
   { id: "actions", header: "Actions" },
 ];
 
-const fetchPasswords = async (): Promise<PasswordEntry[]> => {
-  const res = await api.get("passwords");
-  return res.data;
-};
-
 export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
   
   const { data = [], isLoading, error } = useQuery<PasswordEntry[]>({
     queryKey: ["passwords"],
@@ -32,6 +28,14 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<null | string>(null);
   const [copySnackbar, setCopySnackbar] = useState(false);
+
+  // Query for fetching individual password when revealed
+  const { data: revealedPassword, isLoading: isLoadingPassword } = useQuery<PasswordEntry>({
+    queryKey: ["password", revealedId],
+    queryFn: () => fetchPassword(revealedId!),
+    enabled: !!revealedId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>, id: string) => {
     setAnchorEl(event.currentTarget);
@@ -72,8 +76,27 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
   };
 
   const handleRevealToggle = (id: string) => {
-    setRevealedId(revealedId === id ? null : id);
+    if (revealedId === id) {
+      // Hide password
+      setRevealedId(null);
+      // Remove the individual password from cache
+      queryClient.removeQueries({ queryKey: ["password", id] });
+    } else {
+      // Show password - this will trigger the query
+      setRevealedId(id);
+    }
   };
+
+  // Create a merged data array with revealed passwords
+  const mergedData = data.map(password => {
+    if (password.id === revealedId && revealedPassword) {
+      return {
+        ...password,
+        password: revealedPassword.password, // Use the actual password from the API
+      };
+    }
+    return password;
+  });
 
   if (isLoading) {
     return (
@@ -95,12 +118,13 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
     <>
       {isMobile ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {data.length > 0 ? (
-            data.map((password) => (
+          {mergedData.length > 0 ? (
+            mergedData.map((password) => (
               <PasswordCard
                 key={password.id}
                 password={password}
                 revealedId={revealedId}
+                isLoadingPassword={isLoadingPassword && revealedId === password.id}
                 onRevealToggle={handleRevealToggle}
                 onCopyPassword={handleCopyPassword}
                 onMenuClick={handleMenuClick}
@@ -114,9 +138,10 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
         </Box>
       ) : (
         <PasswordTableDesktop
-          data={data}
+          data={mergedData}
           columns={columns}
           revealedId={revealedId}
+          isLoadingPassword={isLoadingPassword}
           onRevealToggle={handleRevealToggle}
           onCopyPassword={handleCopyPassword}
           onMenuClick={handleMenuClick}
