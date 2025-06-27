@@ -3,7 +3,6 @@ import { FetchPasswordsTransactionScript } from '../../../../domain/transaction-
 import { PasswordResponseDto } from '../shared/dtos/responses/password.response.dto';
 import { GetAuthUser, AuthUser } from 'src/auth/app/decorators/get-auth-user.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { PasswordToDtoConverter } from 'src/password/apps/controllers/actions/shared/converters/password-to-dto.converter';
 import { FetchPasswordsResponder } from './responders/fetch-passwords.responder';
 
 @Controller('passwords')
@@ -16,6 +15,6 @@ export class FetchPasswordsAction {
 
   @Get()
   async handle(@GetAuthUser() user: AuthUser): Promise<PasswordResponseDto[]> {
-    return this.fetchPasswordsResponder.apply(await this.getPasswordsTS.execute(user?.userId));
+    return this.fetchPasswordsResponder.apply(await this.getPasswordsTS.apply(user?.userId));
   }
 } 

@@ -8,11 +8,11 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 export class FetchPasswordsAction {
   constructor(
-    private readonly getPasswordsTS: FetchPasswordsTransactionScript,
+    private readonly fetchPasswordsTS: FetchPasswordsTransactionScript,
   ) {}
 
   @Get()
-  async handle(@GetAuthUser() user: AuthUser): Promise<PasswordResponseDto[]> {
-    return this.getPasswordsTS.execute(user?.userId);
+  async apply(@GetAuthUser() user: AuthUser): Promise<PasswordResponseDto[]> {
+    return this.fetchPasswordsTS.apply(user?.userId);
   }
 } 

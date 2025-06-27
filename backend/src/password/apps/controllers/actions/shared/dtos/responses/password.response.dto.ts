@@ -4,7 +4,7 @@ export class PasswordResponseDto {
   id: number;
   name: string;
   username: string;
-  password: string; // decrypted
+  password: string;
   createdDate: Date;
   lastModifiedDate: Date;
   tags: {id: number, name: string}[];

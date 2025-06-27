@@ -7,14 +7,13 @@ import { Password } from '../entities/password.entity';
 export class FetchPasswordsTransactionScript {
   constructor(
     private readonly passwordRepo: PasswordRepositoryImpl,
-    private readonly encryption: EncryptionAdapter
   ) {}
 
-  async execute(userId: string): Promise<Password[]> {
+  async apply(userId: string): Promise<Password[]> {
     const passwords = await this.passwordRepo.findAllByUser(userId);
     return passwords.map(pw => ({
       ...pw,
-      password: this.encryption.decrypt(pw.password),
+      password: pw.password.length > 0 ? '********' : null,
     }));
   }
 } 
