@@ -23,10 +23,12 @@ async function bootstrap() {
 
     // Enable CORS
     app.enableCors({
-      origin: true, // Allow all origins in development. For production, specify your frontend URL
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      origin: process.env.NODE_ENV === 'development' 
+        ? true 
+        : process.env.FRONTEND_URL,
+      methods: 'GET,HEAD,PUT,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true,
-	    });
+    });
 
     // Enable global validation
     app.useGlobalPipes(new ValidationPipe({
