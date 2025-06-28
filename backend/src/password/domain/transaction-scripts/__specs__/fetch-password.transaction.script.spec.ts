@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { FetchPasswordTransactionScript } from '../fetch-password.transaction.script';
-import { PasswordRepositoryImpl } from '../../../infra/repositories/password.repository.impl';
-import { Password } from '../../entities/password.entity';
+import { Test, TestingModule } from "@nestjs/testing";
+import { FetchPasswordTransactionScript } from "../fetch-password.transaction.script";
+import { PasswordRepositoryImpl } from "../../../infra/repositories/password.repository.impl";
+import { Password } from "../../entities/password.entity";
 
-describe('FetchPasswordTransactionScript', () => {
+describe("FetchPasswordTransactionScript", () => {
   let target: FetchPasswordTransactionScript;
   let passwordRepo: jest.Mocked<PasswordRepositoryImpl>;
 
@@ -22,18 +22,20 @@ describe('FetchPasswordTransactionScript', () => {
       ],
     }).compile();
 
-    target = module.get<FetchPasswordTransactionScript>(FetchPasswordTransactionScript);
+    target = module.get<FetchPasswordTransactionScript>(
+      FetchPasswordTransactionScript,
+    );
     passwordRepo = module.get(PasswordRepositoryImpl);
   });
 
-  describe('apply', () => {
-    it('should return password when found', async () => {
+  describe("apply", () => {
+    it("should return password when found", async () => {
       const mockPassword: Password = {
         id: 1,
-        name: 'Test Password',
-        username: 'testuser',
-        password: 'testpass',
-        userId: 'user123',
+        name: "Test Password",
+        username: "testuser",
+        password: "testpass",
+        userId: "user123",
         createdDate: new Date(),
         lastModifiedDate: new Date(),
         tags: [],
@@ -41,19 +43,19 @@ describe('FetchPasswordTransactionScript', () => {
 
       passwordRepo.findByIdAndUser.mockResolvedValue(mockPassword);
 
-      const result = await target.apply(1, 'user123');
+      const result = await target.apply(1, "user123");
 
       expect(result).toEqual(mockPassword);
-      expect(passwordRepo.findByIdAndUser).toHaveBeenCalledWith(1, 'user123');
+      expect(passwordRepo.findByIdAndUser).toHaveBeenCalledWith(1, "user123");
     });
 
-    it('should return null when password not found', async () => {
+    it("should return null when password not found", async () => {
       passwordRepo.findByIdAndUser.mockResolvedValue(null);
 
-      const result = await target.apply(999, 'user123');
+      const result = await target.apply(999, "user123");
 
       expect(result).toBeNull();
-      expect(passwordRepo.findByIdAndUser).toHaveBeenCalledWith(999, 'user123');
+      expect(passwordRepo.findByIdAndUser).toHaveBeenCalledWith(999, "user123");
     });
   });
-}); 
+});

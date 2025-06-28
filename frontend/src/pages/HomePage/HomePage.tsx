@@ -12,8 +12,8 @@ import Container from "@mui/material/Container";
 import api from "@/api/axios.interceptor";
 import type { AxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
-import type { PasswordEntry } from "./components/PasswordTable/types";
-import { Modal } from "@/pages/HomePage/components/Modal";
+import type { PasswordEntryResponse } from "./components/PasswordTable/types";
+import { Modal } from "@/components/Modal/Modal";
 import { FlexibleTextField } from "@/pages/HomePage/components/FlexibleTextField";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { PasswordField } from "./components/PasswordField";
@@ -28,9 +28,8 @@ export function HomePage() {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
-  const [editingPassword, setEditingPassword] = useState<PasswordEntry | null>(
-    null
-  );
+  const [editingPassword, setEditingPassword] =
+    useState<PasswordEntryResponse | null>(null);
   const [form, setForm] = useState({
     name: "",
     username: "",
@@ -56,7 +55,7 @@ export function HomePage() {
     setShowModal(true);
   };
 
-  const handleOpenEditModal = (password: PasswordEntry) => {
+  const handleOpenEditModal = (password: PasswordEntryResponse) => {
     setEditingPassword(password);
     setForm({
       name: password.name,
@@ -85,7 +84,7 @@ export function HomePage() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -123,7 +122,7 @@ export function HomePage() {
         const axiosErr = err as AxiosError<{ message?: string }>;
         setError(
           axiosErr.response?.data?.message ||
-            `Failed to ${editingPassword ? "update" : "create"} password`
+            `Failed to ${editingPassword ? "update" : "create"} password`,
         );
       } else {
         setError(`Failed to ${editingPassword ? "update" : "create"} password`);

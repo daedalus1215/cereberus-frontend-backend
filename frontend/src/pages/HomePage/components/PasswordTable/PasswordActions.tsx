@@ -35,17 +35,21 @@ export const PasswordActions: React.FC<PasswordActionsProps> = ({
           <Delete sx={{ mr: 1 }} /> Delete
         </MenuItem>
       </Menu>
-      
+
       <Snackbar
         open={copySnackbar}
         autoHideDuration={2000}
         onClose={onCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert onClose={onCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+        <Alert
+          onClose={onCloseSnackbar}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
           Password copied to clipboard!
         </Alert>
       </Snackbar>
     </>
   );
-}; 
+};

@@ -29,7 +29,7 @@ import { PasswordToDtoConverter } from "./apps/controllers/actions/shared/conver
       useFactory: (configService: ConfigService) =>
         new EncryptionAdapter(
           configService.get<string>("ENCRYPTION_KEY"),
-          configService.get<string>("ENCRYPTION_SALT")
+          configService.get<string>("ENCRYPTION_SALT"),
         ),
       inject: [ConfigService],
     },
@@ -39,8 +39,13 @@ import { PasswordToDtoConverter } from "./apps/controllers/actions/shared/conver
     UpdatePasswordTransactionScript,
     FetchPasswordsResponder,
     FetchPasswordResponder,
-    PasswordToDtoConverter
+    PasswordToDtoConverter,
   ],
-  controllers: [AddPasswordAction, FetchPasswordsAction, FetchPasswordAction, UpdatePasswordAction],
+  controllers: [
+    AddPasswordAction,
+    FetchPasswordsAction,
+    FetchPasswordAction,
+    UpdatePasswordAction,
+  ],
 })
 export class PasswordModule {}

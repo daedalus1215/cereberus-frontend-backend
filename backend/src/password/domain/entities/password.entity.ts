@@ -1,7 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { Tag } from './tag.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  JoinTable,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+} from "typeorm";
+import { Tag } from "./tag.entity";
 
-@Entity('passwords')
+@Entity("passwords")
 export class Password {
   @PrimaryGeneratedColumn()
   id: number;
@@ -15,20 +24,20 @@ export class Password {
   @Column()
   password: string;
 
-  @CreateDateColumn({ name: 'created_date' })
+  @CreateDateColumn({ name: "created_date" })
   createdDate: Date;
 
-  @UpdateDateColumn({ name: 'last_modified_date' })
+  @UpdateDateColumn({ name: "last_modified_date" })
   lastModifiedDate: Date;
 
-  @Column({name: 'user_id'})
+  @Column({ name: "user_id" })
   userId: string;
 
-  @ManyToMany(() => Tag, tag => tag.passwords, { cascade: true })
+  @ManyToMany(() => Tag, (tag) => tag.passwords, { cascade: true })
   @JoinTable({
-    name: 'password_tags',
-    joinColumn: { name: 'password_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' }
+    name: "password_tags",
+    joinColumn: { name: "password_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "tag_id", referencedColumnName: "id" },
   })
   tags: Tag[];
 
@@ -37,4 +46,4 @@ export class Password {
 
   @Column({ nullable: true })
   notes?: string;
-} 
+}

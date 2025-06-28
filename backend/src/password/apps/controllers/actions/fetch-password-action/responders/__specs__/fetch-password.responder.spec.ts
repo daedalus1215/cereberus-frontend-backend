@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { FetchPasswordResponder } from '../fetch-password.responder';
-import { PasswordToDtoConverter } from '../../../shared/converters/password-to-dto.converter';
-import { Password } from '../../../../../../domain/entities/password.entity';
-import { PasswordResponseDto } from '../../../shared/dtos/responses/password.response.dto';
+import { Test, TestingModule } from "@nestjs/testing";
+import { FetchPasswordResponder } from "../fetch-password.responder";
+import { PasswordToDtoConverter } from "../../../shared/converters/password-to-dto.converter";
+import { Password } from "../../../../../../domain/entities/password.entity";
+import { PasswordResponseDto } from "../../../shared/dtos/responses/password.response.dto";
 
-describe('FetchPasswordResponder', () => {
+describe("FetchPasswordResponder", () => {
   let target: FetchPasswordResponder;
   let passwordToDtoConverter: jest.Mocked<PasswordToDtoConverter>;
 
@@ -27,14 +27,14 @@ describe('FetchPasswordResponder', () => {
     passwordToDtoConverter = module.get(PasswordToDtoConverter);
   });
 
-  describe('apply', () => {
-    it('should return converted password DTO when password exists', () => {
+  describe("apply", () => {
+    it("should return converted password DTO when password exists", () => {
       const mockPassword: Password = {
         id: 1,
-        name: 'Test Password',
-        username: 'testuser',
-        password: 'testpass',
-        userId: 'user123',
+        name: "Test Password",
+        username: "testuser",
+        password: "testpass",
+        userId: "user123",
         createdDate: new Date(),
         lastModifiedDate: new Date(),
         tags: [],
@@ -42,9 +42,9 @@ describe('FetchPasswordResponder', () => {
 
       const mockResponseDto = new PasswordResponseDto({
         id: 1,
-        name: 'Test Password',
-        username: 'testuser',
-        password: 'testpass',
+        name: "Test Password",
+        username: "testuser",
+        password: "testpass",
         createdDate: new Date(),
         lastModifiedDate: new Date(),
         tags: [],
@@ -58,11 +58,11 @@ describe('FetchPasswordResponder', () => {
       expect(passwordToDtoConverter.apply).toHaveBeenCalledWith(mockPassword);
     });
 
-    it('should return null when password is null', () => {
+    it("should return null when password is null", () => {
       const result = target.apply(null);
 
       expect(result).toBeNull();
       expect(passwordToDtoConverter.apply).not.toHaveBeenCalled();
     });
   });
-}); 
+});

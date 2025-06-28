@@ -1,12 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { FetchPasswordAction } from '../fetch-password.action';
-import { FetchPasswordTransactionScript } from '../../../../../domain/transaction-scripts/fetch-password.transaction.script';
-import { FetchPasswordResponder } from '../responders/fetch-password.responder';
-import { Password } from '../../../../../domain/entities/password.entity';
-import { PasswordResponseDto } from '../../shared/dtos/responses/password.response.dto';
-import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { FetchPasswordAction } from "../fetch-password.action";
+import { FetchPasswordTransactionScript } from "../../../../../domain/transaction-scripts/fetch-password.transaction.script";
+import { FetchPasswordResponder } from "../responders/fetch-password.responder";
+import { Password } from "../../../../../domain/entities/password.entity";
+import { PasswordResponseDto } from "../../shared/dtos/responses/password.response.dto";
+import { NotFoundException } from "@nestjs/common";
 
-describe('FetchPasswordAction', () => {
+describe("FetchPasswordAction", () => {
   let target: FetchPasswordAction;
   let fetchPasswordTS: jest.Mocked<FetchPasswordTransactionScript>;
   let fetchPasswordResponder: jest.Mocked<FetchPasswordResponder>;
@@ -39,14 +39,14 @@ describe('FetchPasswordAction', () => {
     fetchPasswordResponder = module.get(FetchPasswordResponder);
   });
 
-  describe('apply', () => {
-    it('should return password DTO when password is found', async () => {
+  describe("apply", () => {
+    it("should return password DTO when password is found", async () => {
       const mockPassword: Password = {
         id: 1,
-        name: 'Test Password',
-        username: 'testuser',
-        password: 'testpass',
-        userId: 'user123',
+        name: "Test Password",
+        username: "testuser",
+        password: "testpass",
+        userId: "user123",
         createdDate: new Date(),
         lastModifiedDate: new Date(),
         tags: [],
@@ -54,15 +54,15 @@ describe('FetchPasswordAction', () => {
 
       const mockResponseDto = new PasswordResponseDto({
         id: 1,
-        name: 'Test Password',
-        username: 'testuser',
-        password: 'testpass',
+        name: "Test Password",
+        username: "testuser",
+        password: "testpass",
         createdDate: new Date(),
         lastModifiedDate: new Date(),
         tags: [],
       });
 
-      const mockUser = { userId: 'user123', username: 'testuser' };
+      const mockUser = { userId: "user123", username: "testuser" };
 
       fetchPasswordTS.apply.mockResolvedValue(mockPassword);
       fetchPasswordResponder.apply.mockReturnValue(mockResponseDto);
@@ -70,18 +70,20 @@ describe('FetchPasswordAction', () => {
       const result = await target.apply(1, mockUser);
 
       expect(result).toEqual(mockResponseDto);
-      expect(fetchPasswordTS.apply).toHaveBeenCalledWith(1, 'user123');
+      expect(fetchPasswordTS.apply).toHaveBeenCalledWith(1, "user123");
       expect(fetchPasswordResponder.apply).toHaveBeenCalledWith(mockPassword);
     });
 
-    it('should throw NotFoundException when password is not found', async () => {
-      const mockUser = { userId: 'user123', username: 'testuser' };
+    it("should throw NotFoundException when password is not found", async () => {
+      const mockUser = { userId: "user123", username: "testuser" };
 
       fetchPasswordTS.apply.mockResolvedValue(null);
 
-      await expect(target.apply(999, mockUser)).rejects.toThrow(NotFoundException);
-      expect(fetchPasswordTS.apply).toHaveBeenCalledWith(999, 'user123');
+      await expect(target.apply(999, mockUser)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(fetchPasswordTS.apply).toHaveBeenCalledWith(999, "user123");
       expect(fetchPasswordResponder.apply).not.toHaveBeenCalled();
     });
   });
-}); 
+});

@@ -75,7 +75,7 @@
 
 .divider::before,
 .divider::after {
-  content: '';
+  content: "";
   flex: 1;
   border-bottom: 1px solid #2f3336;
 }
@@ -133,4 +133,4 @@
   .buttonGroup {
     max-width: 100%;
   }
-} 
+}

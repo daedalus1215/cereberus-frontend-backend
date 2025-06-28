@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircularProgress, Typography, Box } from "@mui/material";
-import { fetchPasswords, fetchPassword } from "@/api/passwords";
+import { fetchPasswords } from "@/api/passwords";
 import { PasswordCard } from "./PasswordCard";
 import { PasswordTableDesktop } from "./PasswordTableDesktop";
 import { PasswordActions } from "./PasswordActions";
-import type { PasswordEntry, PasswordTableProps, Column } from "./types";
+import type {
+  PasswordEntryResponse,
+  PasswordTableProps,
+  Column,
+} from "./types";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useFetchPassword } from "../../hooks/useFetchPassword";
+import { EditPasswordModal } from "./EditPasswordModal";
 
 const columns: Column[] = [
   { accessorKey: "name", header: "Account" },
@@ -18,26 +24,28 @@ const columns: Column[] = [
 export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
-  
-  const { data = [], isLoading, error } = useQuery<PasswordEntry[]>({
+
+  const {
+    data = [],
+    isLoading,
+    error,
+  } = useQuery<PasswordEntryResponse[]>({
     queryKey: ["passwords"],
     queryFn: fetchPasswords,
   });
 
-  const [revealedId, setRevealedId] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<null | string>(null);
   const [copySnackbar, setCopySnackbar] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
-  // Query for fetching individual password when revealed
-  const { data: revealedPassword, isLoading: isLoadingPassword } = useQuery<PasswordEntry>({
-    queryKey: ["password", revealedId],
-    queryFn: () => fetchPassword(revealedId!),
-    enabled: !!revealedId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const { revealedPassword, isLoadingPassword, setRevealedId, revealedId } =
+    useFetchPassword(selectedRowId);
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, id: string) => {
+  const handleMenuClick = (
+    event: React.MouseEvent<HTMLElement>,
+    id: string,
+  ) => {
     setAnchorEl(event.currentTarget);
     setSelectedRowId(id);
   };
@@ -49,10 +57,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
 
   const handleEdit = () => {
     if (selectedRowId) {
-      const passwordToEdit = data.find((p) => p.id === selectedRowId);
-      if (passwordToEdit) {
-        onEdit(passwordToEdit);
-      }
+      setEditId(selectedRowId);
     }
     handleMenuClose();
   };
@@ -71,7 +76,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
       await navigator.clipboard.writeText(password);
       setCopySnackbar(true);
     } catch (err) {
-      console.error('Failed to copy password:', err);
+      console.error("Failed to copy password:", err);
     }
   };
 
@@ -88,7 +93,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
   };
 
   // Create a merged data array with revealed passwords
-  const mergedData = data.map(password => {
+  const mergedData = data.map((password) => {
     if (password.id === revealedId && revealedPassword) {
       return {
         ...password,
@@ -100,7 +105,9 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+      <div
+        style={{ display: "flex", justifyContent: "center", padding: "2rem" }}
+      >
         <CircularProgress />
       </div>
     );
@@ -108,7 +115,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
 
   if (error) {
     return (
-      <Typography color="error" align="center" style={{ padding: '2rem' }}>
+      <Typography color="error" align="center" style={{ padding: "2rem" }}>
         Error loading passwords
       </Typography>
     );
@@ -117,14 +124,16 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
   return (
     <>
       {isMobile ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {mergedData.length > 0 ? (
             mergedData.map((password) => (
               <PasswordCard
                 key={password.id}
                 password={password}
                 revealedId={revealedId}
-                isLoadingPassword={isLoadingPassword && revealedId === password.id}
+                isLoadingPassword={
+                  isLoadingPassword && revealedId === password.id
+                }
                 onRevealToggle={handleRevealToggle}
                 onCopyPassword={handleCopyPassword}
                 onMenuClick={handleMenuClick}
@@ -147,7 +156,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
           onMenuClick={handleMenuClick}
         />
       )}
-      
+
       <PasswordActions
         anchorEl={anchorEl}
         onMenuClose={handleMenuClose}
@@ -155,6 +164,12 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
         onDelete={handleDelete}
         copySnackbar={copySnackbar}
         onCloseSnackbar={handleCloseSnackbar}
+      />
+      <EditPasswordModal
+        open={!!editId}
+        passwordId={editId}
+        onClose={() => setEditId(null)}
+        onEdit={onEdit}
       />
     </>
   );
