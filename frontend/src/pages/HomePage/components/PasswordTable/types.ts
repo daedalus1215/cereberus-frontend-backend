@@ -1,4 +1,4 @@
-export type PasswordEntry = {
+export type PasswordEntryResponse = {
   id: string;
   name: string;
   username: string;
@@ -9,11 +9,11 @@ export type PasswordEntry = {
 };
 
 export type PasswordTableProps = {
-  onEdit: (password: PasswordEntry) => void;
+  onEdit: (password: PasswordEntryResponse) => void;
 };
 
 export type Column = {
   accessorKey?: string;
   id?: string;
   header: string;
-}; 
+};

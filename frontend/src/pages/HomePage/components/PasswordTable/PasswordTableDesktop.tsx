@@ -11,12 +11,13 @@ import {
 } from "@mui/material";
 import { MoreVert } from "@mui/icons-material";
 import { PasswordCell } from "./PasswordCell";
-import type { PasswordEntry, Column } from "./types";
+import type { PasswordEntryResponse, Column } from "./types";
 
 type PasswordTableDesktopProps = {
-  data: PasswordEntry[];
+  data: PasswordEntryResponse[];
   columns: Column[];
   revealedId: string | null;
+  isLoadingPassword?: boolean;
   onRevealToggle: (id: string) => void;
   onCopyPassword: (password: string) => void;
   onMenuClick: (event: React.MouseEvent<HTMLElement>, id: string) => void;
@@ -26,6 +27,7 @@ export const PasswordTableDesktop: React.FC<PasswordTableDesktopProps> = ({
   data,
   columns,
   revealedId,
+  isLoadingPassword = false,
   onRevealToggle,
   onCopyPassword,
   onMenuClick,
@@ -62,6 +64,9 @@ export const PasswordTableDesktop: React.FC<PasswordTableDesktopProps> = ({
                         row={row}
                         column={column}
                         revealedId={revealedId}
+                        isLoadingPassword={
+                          isLoadingPassword && revealedId === row.id
+                        }
                         onRevealToggle={onRevealToggle}
                         onCopyPassword={onCopyPassword}
                       />
@@ -81,4 +86,4 @@ export const PasswordTableDesktop: React.FC<PasswordTableDesktopProps> = ({
       </Table>
     </TableContainer>
   );
-}; 
+};

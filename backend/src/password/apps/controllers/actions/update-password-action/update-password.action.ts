@@ -14,17 +14,17 @@ import { PasswordToDtoConverter } from "src/password/apps/controllers/actions/sh
 export class UpdatePasswordAction {
   constructor(
     private readonly updatePasswordTS: UpdatePasswordTransactionScript,
-    private readonly passwordToDtoConverter: PasswordToDtoConverter
+    private readonly passwordToDtoConverter: PasswordToDtoConverter,
   ) {}
 
   @Patch(":id")
   async apply(
     @Param("id") id: string,
     @Body() dto: UpdatePasswordDto,
-    @GetAuthUser() user: AuthUser
+    @GetAuthUser() user: AuthUser,
   ): Promise<PasswordResponseDto> {
     return this.passwordToDtoConverter.apply(
-      await this.updatePasswordTS.apply(user.userId, parseInt(id, 10), dto)
+      await this.updatePasswordTS.apply(user.userId, parseInt(id, 10), dto),
     );
   }
 }

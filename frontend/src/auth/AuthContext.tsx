@@ -1,12 +1,10 @@
-import React from 'react';
-import { AuthContext, useAuthProvider } from './useAuth';
+import React from "react";
+import { AuthContext, useAuthProvider } from "./useAuth";
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const auth = useAuthProvider();
 
-  return (
-    <AuthContext.Provider value={auth}>
-      {children}
-    </AuthContext.Provider>
-  );
-}; 
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+};

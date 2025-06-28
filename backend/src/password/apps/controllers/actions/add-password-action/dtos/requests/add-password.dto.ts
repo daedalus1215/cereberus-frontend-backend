@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsArray, IsOptional, ArrayNotEmpty, ArrayUnique, IsInt } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsArray,
+  IsOptional,
+  ArrayNotEmpty,
+  ArrayUnique,
+  IsInt,
+} from "class-validator";
 
 export class AddPasswordDto {
   @IsString()
@@ -26,4 +34,4 @@ export class AddPasswordDto {
   @IsOptional()
   @IsString()
   notes?: string;
-} 
+}

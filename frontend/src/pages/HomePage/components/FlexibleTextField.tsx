@@ -6,7 +6,7 @@ type props = {
   label: string;
   value: unknown;
   handleChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
   isDisabled: boolean;
 };

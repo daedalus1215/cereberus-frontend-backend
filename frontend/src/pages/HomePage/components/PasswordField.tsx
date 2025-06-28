@@ -4,9 +4,11 @@ import { IconButton, TextField } from "@mui/material";
 
 type props = {
   isPasswordShowing: boolean;
-  setIsPasswordShowing: (e:boolean) => void;
+  setIsPasswordShowing: (e: boolean) => void;
   value: unknown;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => void;
   required: boolean;
   isDisabled: boolean;
   isEditingPassword: boolean;

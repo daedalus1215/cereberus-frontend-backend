@@ -5,9 +5,11 @@ import { Password } from "src/password/domain/entities/password.entity";
 
 @Injectable()
 export class FetchPasswordsResponder {
-  constructor(private readonly passwordToDtoConverter: PasswordToDtoConverter) {}
+  constructor(
+    private readonly passwordToDtoConverter: PasswordToDtoConverter,
+  ) {}
 
   apply(passwords: Password[]): PasswordResponseDto[] {
-    return passwords.map(pw => this.passwordToDtoConverter.apply(pw));
+    return passwords.map((pw) => this.passwordToDtoConverter.apply(pw));
   }
 }

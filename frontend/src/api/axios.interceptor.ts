@@ -1,22 +1,21 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: '/',  // We'll handle the full path in the interceptor
+  baseURL: "/", // We'll handle the full path in the interceptor
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    console.log('config', config);
     // Add /api prefix to all requests except those that already have it
-    if (!config.url?.startsWith('/api')) {
+    if (!config.url?.startsWith("/api")) {
       config.url = `/api/${config.url}`;
     }
 
-    const token = localStorage.getItem('jwt_token');
+    const token = localStorage.getItem("jwt_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,7 +23,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor
@@ -36,21 +35,21 @@ api.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // Handle unauthorized (e.g., redirect to login)
-          localStorage.removeItem('jwt_token');
-          window.location.href = '/login';
+          localStorage.removeItem("jwt_token");
+          window.location.href = "/login";
           break;
         case 403:
-          console.error('Forbidden access:', error.response.data);
+          console.error("Forbidden access:", error.response.data);
           break;
         case 404:
-          console.error('Not found:', error.response.data.error);
+          console.error("Not found:", error.response.data.error);
           break;
         default:
-          console.error('API Error:', error.response.data);
+          console.error("API Error:", error.response.data);
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
-export default api; 
+export default api;

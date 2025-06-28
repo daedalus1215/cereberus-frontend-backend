@@ -1,4 +1,4 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 
 export type AuthUser = {
   userId: string;
@@ -11,6 +11,4 @@ export const GetAuthUser = createParamDecorator(
     const user = request.user;
     return data ? user?.[data] : user;
   },
-); 
-
-
+);

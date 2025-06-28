@@ -1,30 +1,30 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Logo } from '../../../components/Logo/Logo';
-import styles from './Login.module.css';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Logo } from "../../../components/Logo/Logo";
+import styles from "./Login.module.css";
 
 interface LoginProps {
   onLogin: (username: string, password: string) => Promise<boolean>;
 }
 
 export function Login({ onLogin }: LoginProps) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsSubmitting(true);
-    
+
     try {
       const success = await onLogin(username, password);
       if (!success) {
-        setError('Invalid credentials');
+        setError("Invalid credentials");
       }
     } catch {
-      setError('An error occurred during login');
+      setError("An error occurred during login");
     } finally {
       setIsSubmitting(false);
     }
@@ -60,12 +60,12 @@ export function Login({ onLogin }: LoginProps) {
             disabled={isSubmitting}
           />
         </div>
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className={styles.submitButton}
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Logging in...' : 'Login'}
+          {isSubmitting ? "Logging in..." : "Login"}
         </button>
       </form>
       <div className={styles.registerLink}>
@@ -73,4 +73,4 @@ export function Login({ onLogin }: LoginProps) {
       </div>
     </div>
   );
-} 
+}
