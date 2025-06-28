@@ -13,7 +13,7 @@ export class Password {
   username: string;
 
   @Column()
-  password: string; // encrypted
+  password: string;
 
   @CreateDateColumn({ name: 'created_date' })
   createdDate: Date;
