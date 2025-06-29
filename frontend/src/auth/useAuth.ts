@@ -55,7 +55,7 @@ export const useAuthProvider = () => {
     async (username: string, password: string): Promise<boolean> => {
       try {
         const response = await api.post<{ access_token: string }>(
-          "/auth/login",
+          "auth/login",
           {
             username,
             password,
