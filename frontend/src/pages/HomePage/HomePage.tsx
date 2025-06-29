@@ -51,7 +51,6 @@ export function HomePage() {
         open={showModal}
         passwordId={editingPassword?.id || null}
         onClose={handleCloseModal}
-        onEdit={handleCloseModal}
       />
     </Box>
   );

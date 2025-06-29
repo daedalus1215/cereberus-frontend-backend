@@ -21,7 +21,7 @@ const columns: Column[] = [
   { id: "actions", header: "Actions" },
 ];
 
-export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
+export const PasswordTable: React.FC<PasswordTableProps> = () => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
@@ -169,7 +169,6 @@ export const PasswordTable: React.FC<PasswordTableProps> = ({ onEdit }) => {
         open={!!editId}
         passwordId={editId}
         onClose={() => setEditId(null)}
-        onEdit={onEdit}
       />
     </>
   );
