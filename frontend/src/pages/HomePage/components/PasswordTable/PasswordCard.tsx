@@ -81,26 +81,7 @@ export const PasswordCard: React.FC<PasswordCardProps> = ({
             <Box
               sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}
             >
-              {isLoadingPassword ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CircularProgress size={16} />
-                  <Typography variant="body2" color="text.secondary">
-                    Loading password...
-                  </Typography>
-                </Box>
-              ) : (
-                <span
-                  style={{
-                    filter: isRevealed ? "none" : "blur(6px)",
-                    cursor: "pointer",
-                    flex: 1,
-                  }}
-                  onClick={() => onRevealToggle(password.id)}
-                >
-                  {password.password}
-                </span>
-              )}
-              <Tooltip title={isRevealed ? "Hide password" : "Show password"}>
+                            <Tooltip title={isRevealed ? "Hide password" : "Show password"}>
                 <IconButton
                   size="small"
                   onClick={() => onRevealToggle(password.id)}
@@ -122,6 +103,26 @@ export const PasswordCard: React.FC<PasswordCardProps> = ({
                   <ContentCopy fontSize="small" />
                 </IconButton>
               </Tooltip>
+              {isLoadingPassword ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
+                <CircularProgress size={16} />
+                  <Typography variant="body2" color="text.secondary">
+                    Loading password...
+                  </Typography>
+                </Box>
+              ) : (
+                <span
+                  style={{
+                    filter: isRevealed ? "none" : "blur(6px)",
+                    cursor: "pointer",
+                    overflow: "ellipsis",
+                    flex: 1,
+                  }}
+                  onClick={() => onRevealToggle(password.id)}
+                >
+                  {password.password}
+                </span>
+              )}
             </Box>
           </Box>
 
