@@ -1,0 +1,105 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Module Design Contract:
+
+## 1. Purpose
+
+The `time-tracks` module manages all logic related to time tracking for notes. It is responsible for creating, retrieving, and aggregating time track data, ensuring all business rules are enforced.
+
+## 2. Layered Structure
+
+### Application Layer
+- **Actions (Controllers/Handlers):**  
+  Each action handles a specific request (e.g., create, get, aggregate time tracks).  
+  Location: `apps/actions/`
+- **DTOs:**  
+  Define request and response shapes.  
+  Location: `apps/dtos/`
+- **Responders/Converters:**  
+  Convert domain entities to DTOs for responses.
+
+### Domain Layer
+- **Services:**  
+  Orchestrate domain logic, delegate to transaction scripts, and use aggregators for cross-domain needs.  
+  Location: `domain/services/`
+- **Aggregators:**  
+  Provide domain-specific operations for use by services in other domains.  
+  Location: `domain/aggregators/`
+- **Transaction Scripts:**  
+  Encapsulate all domain logic for a single feature.  
+  Location: `domain/transaction-scripts/`
+- **Entities & Value Objects:**  
+  Represent core business data and invariants.  
+  Location: `domain/entities/`
+
+### Infrastructure Layer
+- **Repositories:**  
+  Handle persistence and retrieval of domain entities.  
+  Location: `infra/repositories/`
+
+## 3. Interaction Flow
+
+1. **Action** receives a request and validates input.
+2. **Action** calls a **Service** (never a transaction script directly).
+3. **Service** may use an **Aggregator** for cross-domain logic.
+4. **Service** delegates to a **Transaction Script** to perform the core business operation.
+5. **Transaction Script** uses **Repositories** to persist/fetch data.
+6. **Service** or **Action** uses a **Responder/Converter** to map the result to a response DTO.
+
+## 4. Dependency Rules
+
+- Application layer depends on domain, never the reverse.
+- Services depend on aggregators for cross-domain logic.
+- Transaction scripts are the only place for domain logic.
+- No action/handler directly uses a transaction script.
+- Aggregators are not called by actions, only by services.
+
+## 5. Cohesion & Coupling
+
+- **Functional Cohesion:** Each class/module has a single, well-defined responsibility.
+- **Loose Coupling:** Aggregators decouple services from other domains.
+- **Transaction Scripts:** Centralize all domain logic for a feature.
+
+## 6. Directory Structure
+
+```
+time-tracks/
+  apps/
+    actions/         # Request handlers (actions/controllers)
+    dtos/            # Request/response DTOs
+  domain/
+    entities/        # Entities and value objects
+    services/        # Domain services
+    aggregators/     # Aggregators for cross-domain logic
+    transaction-scripts/
+      <feature>/
+        <feature>.transaction.script.ts
+  infra/
+    repositories/    # Data access
+  time-tracks.module.ts
+```
+
+## 7. Example: Create Time Track Flow
+
+1. **Action:** `create-time-track.action.ts` receives the request.
+2. **DTO:** Validates input using `create-time-track.dto.ts`.
+3. **Service:** `time-track.service.ts` orchestrates the operation.
+4. **Transaction Script:** `create-time-track.transaction.script.ts` encapsulates the business logic.
+5. **Repository:** `time-track.repository.ts` persists the new time track.
+6. **Responder/Converter:** Maps the entity to a response DTO.
+
+## 8. Design References
+
+- **Functional Cohesion:** Each module/class does one thing.
+- **Larry Constantine's Structured Design:** Minimize coupling, maximize cohesion.
+- **Khononov's Balancing and Coupling:** Aggregators decouple cross-domain logic.
+
+---
+
+**Note:**  
+- All domain logic must live in transaction scripts.
+- Services/aggregators are the only way to cross domain boundaries.
+- No direct repository access from actions/controllers.
