@@ -3,6 +3,7 @@ import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import * as fs from "fs";
 import { HttpsOptions } from "@nestjs/common/interfaces/external/https-options.interface";
+import helmet from "helmet";
 
 async function bootstrap() {
   let httpsOptions: HttpsOptions | undefined;
@@ -17,10 +18,18 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
-  // Set global prefix for all routes
   app.setGlobalPrefix("api");
-
-  // Enable CORS
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"], // For MUI
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // For PWA
+  }));
   app.enableCors({
     origin:
       process.env.NODE_ENV === "development" ? true : process.env.FRONTEND_URL,
@@ -28,15 +37,14 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Enable global validation
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Strip properties that do not have any decorators
-      forbidNonWhitelisted: true, // Throw an error if non-whitelisted properties are present
-      transform: true, // Automatically transform payloads to be objects typed according to their DTO classes
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
-  await app.listen(process.env.PORT); // Or 8443 if not running as root
+  await app.listen(process.env.PORT);
 }
 bootstrap();

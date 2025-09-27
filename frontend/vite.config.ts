@@ -50,6 +50,11 @@ export default defineConfig({
   },
   server: {
     host: env.VITE_HOST,
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+    },
     port: parseInt(env.VITE_PORT),
     proxy: {
       '/api': {
