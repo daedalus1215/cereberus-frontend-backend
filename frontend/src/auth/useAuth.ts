@@ -116,10 +116,8 @@ export const useAuthProvider = () => {
             id: decoded.sub,
             username: decoded.username,
           };
-          console.log("Storage event: updating user state:", userData);
           setUser(userData);
         } catch (error) {
-          console.error("Failed to parse updated token:", error);
           setUser(null);
         }
       }
