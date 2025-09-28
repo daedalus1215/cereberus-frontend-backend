@@ -39,7 +39,6 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
   const { revealedPassword, isLoadingPassword, setRevealedId } =
     useFetchPassword(passwordId);
 
-  console.log("revealedPassword", revealedPassword);
   const [form, setForm] = useState({
     name: "",
     username: "",

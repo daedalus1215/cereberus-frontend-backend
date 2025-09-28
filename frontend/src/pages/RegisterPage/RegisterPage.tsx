@@ -16,7 +16,7 @@ export function RegisterPage() {
       }
       return success;
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Registration error: Account creation failed");
       return false;
     }
   };
