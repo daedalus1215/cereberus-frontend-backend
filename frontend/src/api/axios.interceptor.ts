@@ -1,9 +1,12 @@
 import axios from "axios";
+import { tokenStorage } from "../auth/tokenStorage";
+import { getSecurityHeaders } from "../utils/security";
 
 const api = axios.create({
   baseURL: "/", // We'll handle the full path in the interceptor
   headers: {
     "Content-Type": "application/json",
+    ...getSecurityHeaders(),
   },
 });
 
@@ -15,8 +18,8 @@ api.interceptors.request.use(
       config.url = `/api/${config.url}`;
     }
 
-    const token = localStorage.getItem("jwt_token");
-    if (token) {
+    const token = tokenStorage.getToken();
+    if (token && tokenStorage.isTokenValid()) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -35,17 +38,17 @@ api.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // Handle unauthorized (e.g., redirect to login)
-          localStorage.removeItem("jwt_token");
+          tokenStorage.removeToken();
           window.location.href = "/login";
           break;
         case 403:
-          console.error("Forbidden access:", error.response.data);
+          console.error("Forbidden access: Insufficient permissions");
           break;
         case 404:
-          console.error("Not found:", error.response.data.error);
+          console.error("Not found: Resource not available");
           break;
         default:
-          console.error("API Error:", error.response.data);
+          console.error("API Error: Request failed");
       }
     }
     return Promise.reject(error);

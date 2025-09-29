@@ -7,6 +7,7 @@ import {
 } from "react";
 import { jwtDecode } from "jwt-decode";
 import api from "../api/axios.interceptor";
+import { tokenStorage } from "./tokenStorage";
 
 type User = {
   id: string;
@@ -32,8 +33,8 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuthProvider = () => {
   const [user, setUser] = useState<User | null>(() => {
-    const token = localStorage.getItem("jwt_token");
-    if (!token) {
+    const token = tokenStorage.getToken();
+    if (!token || !tokenStorage.isTokenValid()) {
       return null;
     }
     try {
@@ -44,7 +45,7 @@ export const useAuthProvider = () => {
       };
       return user;
     } catch {
-      localStorage.removeItem("jwt_token");
+      tokenStorage.removeToken();
       return null;
     }
   });
@@ -71,11 +72,12 @@ export const useAuthProvider = () => {
           username: decoded.username,
         };
 
-        localStorage.setItem("jwt_token", access_token);
+        tokenStorage.setToken(access_token);
         setUser(userData);
         return true;
       } catch (error) {
-        console.error("Login failed:", error);
+        // Log error without exposing sensitive information
+        console.error("Login failed: Authentication error");
         return false;
       }
     },
@@ -83,7 +85,7 @@ export const useAuthProvider = () => {
   );
 
   const logout = useCallback(() => {
-    localStorage.removeItem("jwt_token");
+    tokenStorage.removeToken();
     setUser(null);
   }, []);
 
