@@ -12,7 +12,6 @@ interface TokenStorage {
 
 class SecureTokenStorage implements TokenStorage {
   private readonly TOKEN_KEY = 'jwt_token';
-  private readonly COOKIE_NAME = 'auth_token';
 
   /**
    * Get token from httpOnly cookie via API call
