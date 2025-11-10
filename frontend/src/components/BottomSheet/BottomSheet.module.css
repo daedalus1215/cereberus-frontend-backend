@@ -13,7 +13,7 @@
 
 .sheet {
   width: 100%;
-  background-color: #1a1a1a;
+  background-color: var(--color-bg-tertiary);
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   padding: 16px;
@@ -23,7 +23,7 @@
 .handle {
   width: 32px;
   height: 4px;
-  background-color: #404040;
+  background-color: var(--color-bg-quaternary);
   border-radius: 2px;
   margin: 0 auto 16px;
 }

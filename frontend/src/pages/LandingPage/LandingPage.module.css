@@ -1,8 +1,8 @@
 .container {
   min-height: 100vh;
   display: flex;
-  background-color: #000;
-  color: #fff;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
 
 .content {
@@ -54,8 +54,8 @@
   padding: 0.875rem;
   border-radius: 9999px;
   border: none;
-  background-color: #6366f1; /* Indigo 500 */
-  color: #fff;
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -63,21 +63,21 @@
 }
 
 .createAccountButton:hover {
-  background-color: #4f46e5; /* Indigo 600 */
+  background-color: var(--color-primary-hover);
 }
 
 .divider {
   display: flex;
   align-items: center;
   text-align: center;
-  color: #71767b;
+  color: var(--color-text-muted);
 }
 
 .divider::before,
 .divider::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid #2f3336;
+  border-bottom: 1px solid var(--color-border-secondary);
 }
 
 .divider span {
@@ -93,16 +93,16 @@
 .signInSection p {
   margin: 0;
   font-size: 1rem;
-  color: #71767b;
+  color: var(--color-text-muted);
 }
 
 .signInButton {
   width: 100%;
   padding: 0.875rem;
   border-radius: 9999px;
-  border: 1px solid #536471;
+  border: 1px solid var(--color-border-tertiary);
   background-color: transparent;
-  color: #6366f1; /* Indigo 500 */
+  color: var(--color-primary);
   font-size: 1rem;
   font-weight: 700;
   text-decoration: none;
@@ -112,7 +112,7 @@
 }
 
 .signInButton:hover {
-  background-color: rgba(99, 102, 241, 0.1); /* Indigo with opacity */
+  background-color: var(--color-primary-hover-bg);
 }
 
 @media (max-width: 768px) {

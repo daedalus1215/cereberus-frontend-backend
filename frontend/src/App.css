@@ -3,6 +3,8 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
 
 .logo {
@@ -12,7 +14,7 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em oklch(0.55 0.22 270 / 0.67));
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
@@ -38,7 +40,7 @@
 }
 
 .read-the-docs {
-  color: #888;
+  color: var(--color-text-tertiary);
 }
 
 /* Login page styles */
@@ -49,16 +51,16 @@
 
 .login-page h1 {
   margin-bottom: 2rem;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .login-container {
   max-width: 400px;
   margin: 0 auto;
   padding: 2rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border-primary);
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: var(--color-bg-secondary);
 }
 
 .form-group {
@@ -69,29 +71,31 @@
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: var(--color-text-secondary);
 }
 
 .form-group input {
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border-primary);
   border-radius: 4px;
   font-size: 1rem;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
 }
 
 .error {
-  color: #dc3545;
+  color: var(--color-error);
   margin-bottom: 1rem;
   padding: 0.5rem;
   border-radius: 4px;
-  background-color: #f8d7da;
+  background-color: oklch(0.70 0.19 22.216 / 0.2);
 }
 
 button {
   padding: 0.75rem 1.5rem;
-  background-color: #646cff;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
   border: none;
   border-radius: 4px;
   font-size: 1rem;
@@ -100,7 +104,7 @@ button {
 }
 
 button:hover {
-  background-color: #535bf2;
+  background-color: var(--color-primary-hover);
 }
 
 /* Home page styles */
@@ -114,26 +118,26 @@ button:hover {
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border-secondary);
 }
 
 .home-header h1 {
   margin: 0;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .welcome-text {
   margin: 0.5rem 0 0;
-  color: #666;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
 .logout-button {
-  background-color: #dc3545;
+  background-color: var(--color-error);
 }
 
 .logout-button:hover {
-  background-color: #c82333;
+  background-color: oklch(0.65 0.19 22.216);
 }
 
 /* Note list styles */
@@ -145,7 +149,7 @@ button:hover {
 }
 
 .note-list h2 {
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
 }
 
@@ -160,8 +164,8 @@ button:hover {
 
 .note-list-item {
   padding: 1rem;
-  background-color: #f9f9f9;
-  border: 1px solid #eee;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-secondary);
   border-radius: 4px;
   transition: all 0.2s ease;
   display: flex;
@@ -170,7 +174,7 @@ button:hover {
 }
 
 .note-list-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--color-bg-tertiary);
   transform: translateY(-2px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -180,18 +184,18 @@ button:hover {
 }
 
 .note-list-item.note {
-  border-left: 4px solid #646cff;
+  border-left: 4px solid var(--color-primary);
 }
 
 .note-name {
   font-size: 1.1rem;
-  color: #333;
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
 .note-type {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -201,8 +205,8 @@ button:hover {
 .note-list-empty {
   text-align: center;
   padding: 2rem;
-  color: #666;
-  background-color: #f9f9f9;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-secondary);
   border-radius: 4px;
-  border: 1px solid #eee;
+  border: 1px solid var(--color-border-secondary);
 }
