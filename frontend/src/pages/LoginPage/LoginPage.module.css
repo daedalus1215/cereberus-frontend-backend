@@ -1,11 +1,10 @@
 .loginPage {
-  min-height: 100vh;
-  height: 1000px;
+  min-height: 95vh;
   display: flex;
   flex-direction: column;
   margin: auto;
   align-items: center;
   padding: 2rem;
-  background-color: #000;
-  color: #fff;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
