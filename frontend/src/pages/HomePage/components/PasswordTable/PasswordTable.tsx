@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircularProgress, Typography, Box } from "@mui/material";
+import { CircularProgress, Typography, Box, Fade } from "@mui/material";
 import { fetchPasswords } from "@/api/passwords";
 import { PasswordCard } from "./PasswordCard";
 import { PasswordTableDesktop } from "./PasswordTableDesktop";
@@ -126,18 +126,28 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
       {isMobile ? (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {mergedData.length > 0 ? (
-            mergedData.map((password) => (
-              <PasswordCard
+            mergedData.map((password, index) => (
+              <Fade
                 key={password.id}
-                password={password}
-                revealedId={revealedId}
-                isLoadingPassword={
-                  isLoadingPassword && revealedId === password.id
-                }
-                onRevealToggle={handleRevealToggle}
-                onCopyPassword={handleCopyPassword}
-                onMenuClick={handleMenuClick}
-              />
+                in={true}
+                timeout={400}
+                style={{
+                  transitionDelay: `${index * 50}ms`,
+                }}
+              >
+                <Box>
+                  <PasswordCard
+                    password={password}
+                    revealedId={revealedId}
+                    isLoadingPassword={
+                      isLoadingPassword && revealedId === password.id
+                    }
+                    onRevealToggle={handleRevealToggle}
+                    onCopyPassword={handleCopyPassword}
+                    onMenuClick={handleMenuClick}
+                  />
+                </Box>
+              </Fade>
             ))
           ) : (
             <Typography align="center" sx={{ py: 4 }}>

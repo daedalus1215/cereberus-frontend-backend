@@ -12,6 +12,7 @@ import {
 import { MoreVert } from "@mui/icons-material";
 import { PasswordCell } from "./PasswordCell";
 import type { PasswordEntryResponse, Column } from "./types";
+import styles from "./PasswordTable.module.css";
 
 type PasswordTableDesktopProps = {
   data: PasswordEntryResponse[];
@@ -46,8 +47,14 @@ export const PasswordTableDesktop: React.FC<PasswordTableDesktopProps> = ({
         </TableHead>
         <TableBody>
           {data.length > 0 ? (
-            data.map((row) => (
-              <TableRow key={row.id}>
+            data.map((row, index) => (
+              <TableRow
+                key={row.id}
+                className={styles.fadeIn}
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                }}
+              >
                 {columns.map((column) => (
                   <TableCell key={column.accessorKey || column.id}>
                     {column.id === "actions" ? (
