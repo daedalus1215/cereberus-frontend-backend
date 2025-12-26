@@ -26,6 +26,7 @@ import type {
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useFetchPassword } from "../../hooks/useFetchPassword";
 import { EditPasswordModal } from "./EditPasswordModal";
+import { ViewPasswordModal } from "./ViewPasswordModal";
 
 const columns: Column[] = [
   { accessorKey: "name", header: "Account" },
@@ -51,6 +52,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
   const [selectedRowId, setSelectedRowId] = useState<null | string>(null);
   const [copySnackbar, setCopySnackbar] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [viewId, setViewId] = useState<string | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [passwordIdToDelete, setPasswordIdToDelete] = useState<string | null>(
     null,
@@ -155,6 +157,21 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
     }
   };
 
+  const handleRowClick = (id: string) => {
+    setViewId(id);
+  };
+
+  const handleViewClose = () => {
+    setViewId(null);
+  };
+
+  const handleViewToEdit = () => {
+    if (viewId) {
+      setEditId(viewId);
+      setViewId(null);
+    }
+  };
+
   // Create a merged data array with revealed passwords
   const mergedData = data.map((password) => {
     if (password.id === revealedId && revealedPassword) {
@@ -208,6 +225,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
                     onRevealToggle={handleRevealToggle}
                     onCopyPassword={handleCopyPassword}
                     onMenuClick={handleMenuClick}
+                    onCardClick={handleRowClick}
                   />
                 </Box>
               </Fade>
@@ -227,6 +245,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
           onRevealToggle={handleRevealToggle}
           onCopyPassword={handleCopyPassword}
           onMenuClick={handleMenuClick}
+          onRowClick={handleRowClick}
         />
       )}
 
@@ -237,6 +256,12 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
         onDelete={handleDelete}
         copySnackbar={copySnackbar}
         onCloseSnackbar={handleCloseSnackbar}
+      />
+      <ViewPasswordModal
+        open={!!viewId}
+        passwordId={viewId}
+        onClose={handleViewClose}
+        onEdit={handleViewToEdit}
       />
       <EditPasswordModal
         open={!!editId}
