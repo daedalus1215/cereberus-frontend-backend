@@ -26,9 +26,11 @@ export class UpdatePasswordTransactionScript {
     if (dto.password !== undefined)
       password.password = this.encryption.encrypt(dto.password);
     if (dto.tagIds !== undefined) {
-      const tags = await this.tagRepo.findByIds(dto.tagIds);
+      const tags = await this.tagRepo.findByIds(dto.tagIds, userId);
       if (tags.length !== dto.tagIds.length) {
-        throw new NotFoundException("One or more tags not found");
+        throw new NotFoundException(
+          "One or more tags not found or you don't have access to them",
+        );
       }
       password.tags = tags;
     }

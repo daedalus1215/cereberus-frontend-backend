@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Modal } from "../../../../components/Modal/Modal";
 import {
   CircularProgress,
@@ -9,37 +9,44 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
+import { Visibility } from "@mui/icons-material";
 import { useFetchPassword } from "../../hooks/useFetchPassword";
 import { FlexibleTextField } from "../FlexibleTextField";
 import { PasswordField } from "../PasswordField";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import api from "@/api/axios.interceptor";
 import type { AxiosError } from "axios";
-import { useQueryClient } from "@tanstack/react-query";
-
-const MOCK_TAGS = [
-  { id: 1, name: "work" },
-  { id: 2, name: "personal" },
-  { id: 3, name: "finance" },
-];
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchTags } from "@/api/tags";
+import type { TagResponse } from "@/api/tags";
+import type { PasswordEntryResponse } from "./types";
 
 export type EditPasswordModalProps = {
   open: boolean;
-  passwordId: string | null;
+  password: PasswordEntryResponse | null;
   onClose: () => void;
 };
 
 export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
   open,
-  passwordId,
+  password,
   onClose,
 }) => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
+  const [shouldFetchPassword, setShouldFetchPassword] = useState(false);
   const { revealedPassword, isLoadingPassword, setRevealedId } =
-    useFetchPassword(passwordId);
+    useFetchPassword(shouldFetchPassword ? password?.id || null : null);
 
-  const [form, setForm] = useState({
+  const {
+    data: tags = [],
+    isLoading: isLoadingTags,
+  } = useQuery<TagResponse[]>({
+    queryKey: ["tags"],
+    queryFn: fetchTags,
+  });
+
+  const getInitialFormState = () => ({
     name: "",
     username: "",
     password: "",
@@ -47,29 +54,49 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
     notes: "",
     tagIds: [] as number[],
   });
+
+  const [form, setForm] = useState(getInitialFormState);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(() => {
-    if (open && passwordId) {
-      setRevealedId(passwordId);
-    }
-  }, [open, passwordId, setRevealedId]);
+  const resetForm = useCallback(() => {
+    setForm(getInitialFormState());
+    setShowPassword(false);
+    setError(null);
+    setShouldFetchPassword(false);
+  }, []);
 
+  // Populate form when editing (using password data from list)
   useEffect(() => {
-    if (revealedPassword) {
+    if (!open) {
+      return;
+    }
+    if (password) {
       setForm({
-        name: revealedPassword.name,
-        username: revealedPassword.username,
-        password: revealedPassword.password,
-        url: revealedPassword.url,
-        notes: revealedPassword.notes || "",
-        tagIds: revealedPassword.tags.map((t) => t.id),
+        name: password.name,
+        username: password.username,
+        password: "", // Don't populate password - user must reveal it
+        url: password.url,
+        notes: password.notes || "",
+        tagIds: password.tags.map((t) => t.id),
       });
       setShowPassword(false);
+      setShouldFetchPassword(false);
+    } else {
+      resetForm();
     }
-  }, [revealedPassword]);
+  }, [open, password, resetForm]);
+
+  // Update password field when user reveals it
+  useEffect(() => {
+    if (revealedPassword && shouldFetchPassword && password) {
+      setForm((prev) => ({
+        ...prev,
+        password: revealedPassword.password,
+      }));
+    }
+  }, [revealedPassword, shouldFetchPassword, password]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -86,19 +113,30 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
     }));
   };
 
+  const handleRevealPassword = () => {
+    if (!password) {
+      return;
+    }
+    if (!shouldFetchPassword) {
+      setShouldFetchPassword(true);
+      setRevealedId(password.id);
+    }
+    setShowPassword(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
 
     const submissionForm = { ...form };
-    if (passwordId && !submissionForm.password) {
+    if (password && !submissionForm.password) {
       delete (submissionForm as Partial<typeof submissionForm>).password;
     }
 
     try {
-      if (passwordId) {
-        await api.patch(`passwords/${passwordId}`, submissionForm);
+      if (password) {
+        await api.patch(`passwords/${password.id}`, submissionForm);
       } else {
         await api.post("passwords", form);
       }
@@ -109,10 +147,10 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
         const axiosErr = err as AxiosError<{ message?: string }>;
         setError(
           axiosErr.response?.data?.message ||
-            `Failed to ${passwordId ? "update" : "create"} password`,
+            `Failed to ${password ? "update" : "create"} password`,
         );
       } else {
-        setError(`Failed to ${passwordId ? "update" : "create"} password`);
+        setError(`Failed to ${password ? "update" : "create"} password`);
       }
     } finally {
       setSubmitting(false);
@@ -121,15 +159,7 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
 
   const handleClose = () => {
     onClose();
-    setError(null);
-    setForm({
-      name: "",
-      username: "",
-      password: "",
-      url: "",
-      notes: "",
-      tagIds: [],
-    });
+    resetForm();
   };
 
   return (
@@ -139,15 +169,30 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
       isClosedButtonDisabled={submitting}
       aria-labelledby="password-modal-title"
     >
-      <form
+      <Box
+        component="form"
         onSubmit={handleSubmit}
-        style={{
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: isMobile ? 12 : 16,
-          marginTop: 16,
-          minWidth: 350,
-          padding: 16,
+          gap: isMobile ? 1.5 : 2,
+          flex: 1,
+          overflowY: "auto",
+          overflowX: "hidden",
+          pr: 0.5,
+          "&::-webkit-scrollbar": {
+            width: "6px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "rgba(255, 255, 255, 0.2)",
+            borderRadius: "3px",
+            "&:hover": {
+              background: "rgba(255, 255, 255, 0.3)",
+            },
+          },
         }}
       >
         <Typography
@@ -156,25 +201,13 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
           component="h2"
           sx={{
             textAlign: "center",
-            mb: isMobile ? 1 : 2,
-            fontSize: isMobile ? "1.1rem" : "inherit",
+            mb: isMobile ? 0.5 : 1,
+            fontSize: isMobile ? "1.1rem" : "1.25rem",
+            fontWeight: 600,
           }}
         >
-          {passwordId ? "Edit Password" : "Create New Password"}
+          {password ? "Edit Password" : "Create New Password"}
         </Typography>
-
-        {isLoadingPassword ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              minHeight: 120,
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        ) : (
           <>
             <FlexibleTextField
               name="name"
@@ -200,15 +233,44 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
               isDisabled={submitting}
             />
 
-            <PasswordField
-              isPasswordShowing={showPassword}
-              setIsPasswordShowing={setShowPassword}
-              value={form.password}
-              handleChange={handleChange}
-              required={false}
-              isDisabled={submitting}
-              isEditingPassword={!!passwordId}
-            />
+            {password && !shouldFetchPassword ? (
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Password (click to reveal current password)
+                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={handleRevealPassword}
+                  disabled={submitting || isLoadingPassword}
+                  startIcon={<Visibility />}
+                  fullWidth
+                  size={isMobile ? "small" : "medium"}
+                >
+                  {isLoadingPassword ? "Loading..." : "Reveal Current Password"}
+                </Button>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                  Or leave blank to keep current password
+                </Typography>
+              </Box>
+            ) : (
+              <PasswordField
+                isPasswordShowing={showPassword}
+                setIsPasswordShowing={setShowPassword}
+                value={form.password}
+                handleChange={handleChange}
+                required={false}
+                isDisabled={submitting || (isLoadingPassword && shouldFetchPassword)}
+                isEditingPassword={!!password}
+              />
+            )}
+            {isLoadingPassword && shouldFetchPassword && (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <CircularProgress size={16} />
+                <Typography variant="body2" color="text.secondary">
+                  Loading password...
+                </Typography>
+              </Box>
+            )}
 
             <TextField
               name="notes"
@@ -223,53 +285,83 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
               placeholder="Optional notes about this password..."
             />
 
-            <div>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+            <Box>
+              <Typography variant="body2" sx={{ mb: 0.75, fontWeight: 500 }}>
                 Tags:
               </Typography>
-              <div
-                style={{
-                  display: "flex",
-                  gap: isMobile ? 4 : 8,
-                  flexWrap: "wrap",
-                  flexDirection: isMobile ? "column" : "row",
-                }}
-              >
-                {MOCK_TAGS.map((tag) => (
-                  <FormControlLabel
-                    key={tag.id}
-                    control={
-                      <Checkbox
-                        checked={form.tagIds.includes(tag.id)}
-                        onChange={() => handleTagToggle(tag.id)}
-                        disabled={submitting}
-                        size={isMobile ? "small" : "medium"}
+              {isLoadingTags ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+                  <CircularProgress size={20} />
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: isMobile ? 0.5 : 1,
+                    flexWrap: "wrap",
+                    flexDirection: isMobile ? "column" : "row",
+                  }}
+                >
+                  {tags.length > 0 ? (
+                    tags.map((tag) => (
+                      <FormControlLabel
+                        key={tag.id}
+                        control={
+                          <Checkbox
+                            checked={form.tagIds.includes(tag.id)}
+                            onChange={() => handleTagToggle(tag.id)}
+                            disabled={submitting}
+                            size={isMobile ? "small" : "medium"}
+                          />
+                        }
+                        label={tag.name}
+                        sx={{
+                          fontSize: isMobile ? "0.875rem" : "0.9375rem",
+                          "& .MuiFormControlLabel-label": {
+                            fontSize: isMobile ? "0.875rem" : "0.9375rem",
+                          },
+                        }}
                       />
-                    }
-                    label={tag.name}
-                    sx={{
-                      fontSize: isMobile ? "0.875rem" : "inherit",
-                      margin: isMobile ? "2px 0" : "inherit",
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
+                    ))
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontStyle: "italic" }}
+                    >
+                      No tags available
+                    </Typography>
+                  )}
+                </Box>
+              )}
+            </Box>
 
             {error && (
               <Typography
                 color="error"
                 sx={{
                   textAlign: "center",
-                  fontSize: isMobile ? "0.875rem" : "inherit",
+                  fontSize: isMobile ? "0.875rem" : "0.9375rem",
+                  py: 0.5,
                 }}
               >
                 {error}
               </Typography>
             )}
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-              <Button onClick={handleClose} sx={{ mr: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 1,
+                mt: 1,
+                mb: 1,
+                pt: 1,
+                borderTop: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Button onClick={handleClose} variant="outlined" size={isMobile ? "small" : "medium"}>
                 Cancel
               </Button>
               <Button
@@ -277,19 +369,15 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
                 variant="contained"
                 color="primary"
                 disabled={submitting}
-                sx={{
-                  py: isMobile ? 1.5 : 1,
-                  fontSize: isMobile ? "0.875rem" : "inherit",
-                }}
+                size={isMobile ? "small" : "medium"}
               >
                 {submitting
-                  ? `${passwordId ? "Updating" : "Creating"}...`
-                  : `${passwordId ? "Update" : "Create"} Password`}
+                  ? `${password ? "Updating" : "Creating"}...`
+                  : `${password ? "Update" : "Create"} Password`}
               </Button>
             </Box>
           </>
-        )}
-      </form>
+      </Box>
     </Modal>
   );
 };

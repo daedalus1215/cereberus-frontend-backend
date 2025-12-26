@@ -12,6 +12,7 @@ import {
 import { MoreVert } from "@mui/icons-material";
 import { PasswordCell } from "./PasswordCell";
 import type { PasswordEntryResponse, Column } from "./types";
+import styles from "./PasswordTable.module.css";
 
 type PasswordTableDesktopProps = {
   data: PasswordEntryResponse[];
@@ -21,6 +22,7 @@ type PasswordTableDesktopProps = {
   onRevealToggle: (id: string) => void;
   onCopyPassword: (password: string) => void;
   onMenuClick: (event: React.MouseEvent<HTMLElement>, id: string) => void;
+  onRowClick?: (id: string) => void;
 };
 
 export const PasswordTableDesktop: React.FC<PasswordTableDesktopProps> = ({
@@ -31,7 +33,20 @@ export const PasswordTableDesktop: React.FC<PasswordTableDesktopProps> = ({
   onRevealToggle,
   onCopyPassword,
   onMenuClick,
+  onRowClick,
 }) => {
+  const handleRowClick = (id: string, event: React.MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (
+      target.closest("button") ||
+      target.closest('[role="button"]') ||
+      target.closest(".MuiIconButton-root") ||
+      target.closest(".MuiButton-root")
+    ) {
+      return;
+    }
+    onRowClick?.(id);
+  };
   return (
     <TableContainer component={Paper}>
       <Table aria-label="passwords table">
@@ -46,8 +61,23 @@ export const PasswordTableDesktop: React.FC<PasswordTableDesktopProps> = ({
         </TableHead>
         <TableBody>
           {data.length > 0 ? (
-            data.map((row) => (
-              <TableRow key={row.id}>
+            data.map((row, index) => (
+              <TableRow
+                key={row.id}
+                className={styles.fadeIn}
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                }}
+                onClick={(e) => handleRowClick(row.id, e)}
+                sx={{
+                  cursor: onRowClick ? "pointer" : "default",
+                  "&:hover": onRowClick
+                    ? {
+                        backgroundColor: "action.hover",
+                      }
+                    : {},
+                }}
+              >
                 {columns.map((column) => (
                   <TableCell key={column.accessorKey || column.id}>
                     {column.id === "actions" ? (

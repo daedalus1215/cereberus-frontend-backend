@@ -25,6 +25,7 @@ type PasswordCardProps = {
   onRevealToggle: (id: string) => void;
   onCopyPassword: (password: string) => void;
   onMenuClick: (event: React.MouseEvent<HTMLElement>, id: string) => void;
+  onCardClick?: (id: string) => void;
 };
 
 export const PasswordCard: React.FC<PasswordCardProps> = ({
@@ -34,11 +35,37 @@ export const PasswordCard: React.FC<PasswordCardProps> = ({
   onRevealToggle,
   onCopyPassword,
   onMenuClick,
+  onCardClick,
 }) => {
   const isRevealed = revealedId === password.id;
 
+  const handleCardClick = (event: React.MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (
+      target.closest("button") ||
+      target.closest('[role="button"]') ||
+      target.closest(".MuiIconButton-root") ||
+      target.closest(".MuiButton-root") ||
+      target.closest(".MuiChip-root")
+    ) {
+      return;
+    }
+    onCardClick?.(password.id);
+  };
+
   return (
-    <Card sx={{ width: "100%" }}>
+    <Card
+      sx={{
+        width: "100%",
+        cursor: onCardClick ? "pointer" : "default",
+        "&:hover": onCardClick
+          ? {
+              boxShadow: 3,
+            }
+          : {},
+      }}
+      onClick={handleCardClick}
+    >
       <CardContent>
         <Box
           sx={{
