@@ -12,3 +12,7 @@ export const fetchPassword = async (
   const res = await api.get(`passwords/${id}`);
   return res.data;
 };
+
+export const deletePassword = async (id: string): Promise<void> => {
+  await api.delete(`passwords/${id}`);
+};
