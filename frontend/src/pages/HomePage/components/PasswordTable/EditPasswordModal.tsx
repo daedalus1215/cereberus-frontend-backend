@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Modal } from "../../../../components/Modal/Modal";
 import {
   CircularProgress,
@@ -39,7 +39,7 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
   const { revealedPassword, isLoadingPassword, setRevealedId } =
     useFetchPassword(passwordId);
 
-  const [form, setForm] = useState({
+  const getInitialFormState = () => ({
     name: "",
     username: "",
     password: "",
@@ -47,18 +47,34 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
     notes: "",
     tagIds: [] as number[],
   });
+
+  const [form, setForm] = useState(getInitialFormState);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(() => {
-    if (open && passwordId) {
-      setRevealedId(passwordId);
-    }
-  }, [open, passwordId, setRevealedId]);
+  const resetForm = useCallback(() => {
+    setForm(getInitialFormState());
+    setShowPassword(false);
+    setError(null);
+  }, []);
 
+  // Manage revealedId based on passwordId when modal opens
   useEffect(() => {
-    if (revealedPassword) {
+    if (!open) {
+      return;
+    }
+    if (passwordId) {
+      setRevealedId(passwordId);
+    } else {
+      setRevealedId(null);
+      resetForm();
+    }
+  }, [open, passwordId, setRevealedId, resetForm]);
+
+  // Populate form when editing (only when passwordId exists and we have data)
+  useEffect(() => {
+    if (revealedPassword && passwordId) {
       setForm({
         name: revealedPassword.name,
         username: revealedPassword.username,
@@ -69,7 +85,7 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
       });
       setShowPassword(false);
     }
-  }, [revealedPassword]);
+  }, [revealedPassword, passwordId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -121,15 +137,7 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
 
   const handleClose = () => {
     onClose();
-    setError(null);
-    setForm({
-      name: "",
-      username: "",
-      password: "",
-      url: "",
-      notes: "",
-      tagIds: [],
-    });
+    resetForm();
   };
 
   return (
