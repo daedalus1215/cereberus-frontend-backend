@@ -27,6 +27,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { useFetchPassword } from "../../hooks/useFetchPassword";
 import { EditPasswordModal } from "./EditPasswordModal";
 import { ViewPasswordModal } from "./ViewPasswordModal";
+import { TagFilter } from "./TagFilter";
 
 const columns: Column[] = [
   { accessorKey: "name", header: "Account" },
@@ -62,6 +63,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
     success: boolean;
     message: string;
   }>({ open: false, success: false, message: "" });
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
 
   const { revealedPassword, isLoadingPassword, setRevealedId, revealedId } =
     useFetchPassword(selectedRowId);
@@ -104,7 +106,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
 
   const handleEdit = () => {
     if (selectedRowId) {
-      const passwordToEdit = mergedData.find((p) => p.id === selectedRowId);
+      const passwordToEdit = filteredData.find((p) => p.id === selectedRowId);
       if (passwordToEdit) {
         setEditPassword(passwordToEdit);
       }
@@ -161,7 +163,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
   };
 
   const handleRowClick = (id: string) => {
-    const passwordToView = mergedData.find((p) => p.id === id);
+    const passwordToView = filteredData.find((p) => p.id === id);
     if (passwordToView) {
       setViewPassword(passwordToView);
     }
@@ -189,6 +191,25 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
     return password;
   });
 
+  // Filter passwords by selected tags
+  const filteredData = selectedTagIds.length > 0
+    ? mergedData.filter((password) =>
+        password.tags.some((tag) => selectedTagIds.includes(tag.id))
+      )
+    : mergedData;
+
+  const handleTagToggle = (tagId: number) => {
+    setSelectedTagIds((prev) =>
+      prev.includes(tagId)
+        ? prev.filter((id) => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  const handleClearFilters = () => {
+    setSelectedTagIds([]);
+  };
+
   if (isLoading) {
     return (
       <div
@@ -209,10 +230,15 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
 
   return (
     <>
+      <TagFilter
+        selectedTagIds={selectedTagIds}
+        onTagToggle={handleTagToggle}
+        onClearFilters={handleClearFilters}
+      />
       {isMobile ? (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {mergedData.length > 0 ? (
-            mergedData.map((password, index) => (
+          {filteredData.length > 0 ? (
+            filteredData.map((password, index) => (
               <Fade
                 key={password.id}
                 in={true}
@@ -238,13 +264,15 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
             ))
           ) : (
             <Typography align="center" sx={{ py: 4 }}>
-              No passwords found.
+              {selectedTagIds.length > 0
+                ? "No passwords found matching the selected tags."
+                : "No passwords found."}
             </Typography>
           )}
         </Box>
       ) : (
         <PasswordTableDesktop
-          data={mergedData}
+          data={filteredData}
           columns={columns}
           revealedId={revealedId}
           isLoadingPassword={isLoadingPassword}
