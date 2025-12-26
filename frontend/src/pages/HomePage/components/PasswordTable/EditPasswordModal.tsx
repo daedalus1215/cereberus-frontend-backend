@@ -15,13 +15,9 @@ import { PasswordField } from "../PasswordField";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import api from "@/api/axios.interceptor";
 import type { AxiosError } from "axios";
-import { useQueryClient } from "@tanstack/react-query";
-
-const MOCK_TAGS = [
-  { id: 1, name: "work" },
-  { id: 2, name: "personal" },
-  { id: 3, name: "finance" },
-];
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchTags } from "@/api/tags";
+import type { TagResponse } from "@/api/tags";
 
 export type EditPasswordModalProps = {
   open: boolean;
@@ -38,6 +34,14 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
   const queryClient = useQueryClient();
   const { revealedPassword, isLoadingPassword, setRevealedId } =
     useFetchPassword(passwordId);
+
+  const {
+    data: tags = [],
+    isLoading: isLoadingTags,
+  } = useQuery<TagResponse[]>({
+    queryKey: ["tags"],
+    queryFn: fetchTags,
+  });
 
   const getInitialFormState = () => ({
     name: "",
@@ -252,35 +256,51 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
               <Typography variant="body2" sx={{ mb: 0.75, fontWeight: 500 }}>
                 Tags:
               </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: isMobile ? 0.5 : 1,
-                  flexWrap: "wrap",
-                  flexDirection: isMobile ? "column" : "row",
-                }}
-              >
-                {MOCK_TAGS.map((tag) => (
-                  <FormControlLabel
-                    key={tag.id}
-                    control={
-                      <Checkbox
-                        checked={form.tagIds.includes(tag.id)}
-                        onChange={() => handleTagToggle(tag.id)}
-                        disabled={submitting}
-                        size={isMobile ? "small" : "medium"}
+              {isLoadingTags ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+                  <CircularProgress size={20} />
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: isMobile ? 0.5 : 1,
+                    flexWrap: "wrap",
+                    flexDirection: isMobile ? "column" : "row",
+                  }}
+                >
+                  {tags.length > 0 ? (
+                    tags.map((tag) => (
+                      <FormControlLabel
+                        key={tag.id}
+                        control={
+                          <Checkbox
+                            checked={form.tagIds.includes(tag.id)}
+                            onChange={() => handleTagToggle(tag.id)}
+                            disabled={submitting}
+                            size={isMobile ? "small" : "medium"}
+                          />
+                        }
+                        label={tag.name}
+                        sx={{
+                          fontSize: isMobile ? "0.875rem" : "0.9375rem",
+                          "& .MuiFormControlLabel-label": {
+                            fontSize: isMobile ? "0.875rem" : "0.9375rem",
+                          },
+                        }}
                       />
-                    }
-                    label={tag.name}
-                    sx={{
-                      fontSize: isMobile ? "0.875rem" : "0.9375rem",
-                      "& .MuiFormControlLabel-label": {
-                        fontSize: isMobile ? "0.875rem" : "0.9375rem",
-                      },
-                    }}
-                  />
-                ))}
-              </Box>
+                    ))
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontStyle: "italic" }}
+                    >
+                      No tags available
+                    </Typography>
+                  )}
+                </Box>
+              )}
             </Box>
 
             {error && (
