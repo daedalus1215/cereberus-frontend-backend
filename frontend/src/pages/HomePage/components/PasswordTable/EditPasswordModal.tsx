@@ -147,15 +147,30 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
       isClosedButtonDisabled={submitting}
       aria-labelledby="password-modal-title"
     >
-      <form
+      <Box
+        component="form"
         onSubmit={handleSubmit}
-        style={{
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: isMobile ? 12 : 16,
-          marginTop: 16,
-          minWidth: 350,
-          padding: 16,
+          gap: isMobile ? 1.5 : 2,
+          flex: 1,
+          overflowY: "auto",
+          overflowX: "hidden",
+          pr: 0.5,
+          "&::-webkit-scrollbar": {
+            width: "6px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "rgba(255, 255, 255, 0.2)",
+            borderRadius: "3px",
+            "&:hover": {
+              background: "rgba(255, 255, 255, 0.3)",
+            },
+          },
         }}
       >
         <Typography
@@ -164,8 +179,9 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
           component="h2"
           sx={{
             textAlign: "center",
-            mb: isMobile ? 1 : 2,
-            fontSize: isMobile ? "1.1rem" : "inherit",
+            mb: isMobile ? 0.5 : 1,
+            fontSize: isMobile ? "1.1rem" : "1.25rem",
+            fontWeight: 600,
           }}
         >
           {passwordId ? "Edit Password" : "Create New Password"}
@@ -177,7 +193,8 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              minHeight: 120,
+              minHeight: 200,
+              py: 4,
             }}
           >
             <CircularProgress />
@@ -231,14 +248,14 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
               placeholder="Optional notes about this password..."
             />
 
-            <div>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+            <Box>
+              <Typography variant="body2" sx={{ mb: 0.75, fontWeight: 500 }}>
                 Tags:
               </Typography>
-              <div
-                style={{
+              <Box
+                sx={{
                   display: "flex",
-                  gap: isMobile ? 4 : 8,
+                  gap: isMobile ? 0.5 : 1,
                   flexWrap: "wrap",
                   flexDirection: isMobile ? "column" : "row",
                 }}
@@ -256,28 +273,42 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
                     }
                     label={tag.name}
                     sx={{
-                      fontSize: isMobile ? "0.875rem" : "inherit",
-                      margin: isMobile ? "2px 0" : "inherit",
+                      fontSize: isMobile ? "0.875rem" : "0.9375rem",
+                      "& .MuiFormControlLabel-label": {
+                        fontSize: isMobile ? "0.875rem" : "0.9375rem",
+                      },
                     }}
                   />
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Box>
 
             {error && (
               <Typography
                 color="error"
                 sx={{
                   textAlign: "center",
-                  fontSize: isMobile ? "0.875rem" : "inherit",
+                  fontSize: isMobile ? "0.875rem" : "0.9375rem",
+                  py: 0.5,
                 }}
               >
                 {error}
               </Typography>
             )}
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-              <Button onClick={handleClose} sx={{ mr: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 1,
+                mt: 1,
+                mb: 1,
+                pt: 1,
+                borderTop: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Button onClick={handleClose} variant="outlined" size={isMobile ? "small" : "medium"}>
                 Cancel
               </Button>
               <Button
@@ -285,10 +316,7 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
                 variant="contained"
                 color="primary"
                 disabled={submitting}
-                sx={{
-                  py: isMobile ? 1.5 : 1,
-                  fontSize: isMobile ? "0.875rem" : "inherit",
-                }}
+                size={isMobile ? "small" : "medium"}
               >
                 {submitting
                   ? `${passwordId ? "Updating" : "Creating"}...`
@@ -297,7 +325,7 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
             </Box>
           </>
         )}
-      </form>
+      </Box>
     </Modal>
   );
 };
