@@ -22,18 +22,20 @@ export class AddPasswordTransactionScript {
     password.username = dto.username;
     password.password = this.encryption.encrypt(dto.password);
     password.userId = userId;
-    password.tags = await this.getTags(dto.tagIds);
+    password.tags = await this.getTags(dto.tagIds, userId);
     password.url = dto.url;
     password.notes = dto.notes;
 
     return await this.passwordRepo.save(password);
   }
 
-  private async getTags(tagIds: number[]): Promise<Tag[]> {
+  private async getTags(tagIds: number[], userId: string): Promise<Tag[]> {
     if (tagIds && tagIds.length > 0) {
-      const tags = await this.tagRepo.findByIds(tagIds);
+      const tags = await this.tagRepo.findByIds(tagIds, userId);
       if (tags.length !== tagIds.length) {
-        throw new NotFoundException("One or more tags not found");
+        throw new NotFoundException(
+          "One or more tags not found or you don't have access to them",
+        );
       }
       return tags;
     }

@@ -1,7 +1,20 @@
 import React, { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircularProgress, Typography, Box, Fade } from "@mui/material";
-import { fetchPasswords } from "@/api/passwords";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import {
+  CircularProgress,
+  Typography,
+  Box,
+  Fade,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+  Snackbar,
+  Alert,
+} from "@mui/material";
+import { fetchPasswords, deletePassword } from "@/api/passwords";
 import { PasswordCard } from "./PasswordCard";
 import { PasswordTableDesktop } from "./PasswordTableDesktop";
 import { PasswordActions } from "./PasswordActions";
@@ -38,9 +51,41 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
   const [selectedRowId, setSelectedRowId] = useState<null | string>(null);
   const [copySnackbar, setCopySnackbar] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [passwordIdToDelete, setPasswordIdToDelete] = useState<string | null>(
+    null,
+  );
+  const [deleteSnackbar, setDeleteSnackbar] = useState<{
+    open: boolean;
+    success: boolean;
+    message: string;
+  }>({ open: false, success: false, message: "" });
 
   const { revealedPassword, isLoadingPassword, setRevealedId, revealedId } =
     useFetchPassword(selectedRowId);
+
+  const deleteMutation = useMutation({
+    mutationFn: deletePassword,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["passwords"] });
+      if (passwordIdToDelete) {
+        queryClient.removeQueries({ queryKey: ["password", passwordIdToDelete] });
+      }
+      setDeleteSnackbar({
+        open: true,
+        success: true,
+        message: "Password deleted successfully",
+      });
+      setPasswordIdToDelete(null);
+    },
+    onError: () => {
+      setDeleteSnackbar({
+        open: true,
+        success: false,
+        message: "Failed to delete password",
+      });
+    },
+  });
 
   const handleMenuClick = (
     event: React.MouseEvent<HTMLElement>,
@@ -63,8 +108,26 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
   };
 
   const handleDelete = () => {
-    // TODO: Implement delete functionality
+    const idToDelete = selectedRowId;
     handleMenuClose();
+    setPasswordIdToDelete(idToDelete);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (passwordIdToDelete) {
+      deleteMutation.mutate(passwordIdToDelete);
+    }
+    setDeleteConfirmOpen(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setPasswordIdToDelete(null);
+  };
+
+  const handleCloseDeleteSnackbar = () => {
+    setDeleteSnackbar({ open: false, success: false, message: "" });
   };
 
   const handleCloseSnackbar = () => {
@@ -180,6 +243,49 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
         passwordId={editId}
         onClose={() => setEditId(null)}
       />
+
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">Delete Password</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            Are you sure you want to delete this password? This action cannot be
+            undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="inherit">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={deleteSnackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseDeleteSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseDeleteSnackbar}
+          severity={deleteSnackbar.success ? "success" : "error"}
+          sx={{ width: "100%" }}
+        >
+          {deleteSnackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

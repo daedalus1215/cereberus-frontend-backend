@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Password } from "../../domain/entities/password.entity";
@@ -27,5 +27,12 @@ export class PasswordRepositoryImpl {
 
   async update(password: Password): Promise<Password> {
     return this.repo.save(password);
+  }
+
+  async delete(id: number, userId: string): Promise<void> {
+    const result = await this.repo.delete({ id, userId });
+    if (result.affected === 0) {
+      throw new NotFoundException("Password not found or access denied");
+    }
   }
 }
