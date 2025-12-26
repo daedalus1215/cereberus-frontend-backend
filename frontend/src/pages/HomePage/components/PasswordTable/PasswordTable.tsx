@@ -51,8 +51,8 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<null | string>(null);
   const [copySnackbar, setCopySnackbar] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [viewId, setViewId] = useState<string | null>(null);
+  const [editPassword, setEditPassword] = useState<PasswordEntryResponse | null>(null);
+  const [viewPassword, setViewPassword] = useState<PasswordEntryResponse | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [passwordIdToDelete, setPasswordIdToDelete] = useState<string | null>(
     null,
@@ -104,7 +104,10 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
 
   const handleEdit = () => {
     if (selectedRowId) {
-      setEditId(selectedRowId);
+      const passwordToEdit = mergedData.find((p) => p.id === selectedRowId);
+      if (passwordToEdit) {
+        setEditPassword(passwordToEdit);
+      }
     }
     handleMenuClose();
   };
@@ -158,17 +161,20 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
   };
 
   const handleRowClick = (id: string) => {
-    setViewId(id);
+    const passwordToView = mergedData.find((p) => p.id === id);
+    if (passwordToView) {
+      setViewPassword(passwordToView);
+    }
   };
 
   const handleViewClose = () => {
-    setViewId(null);
+    setViewPassword(null);
   };
 
   const handleViewToEdit = () => {
-    if (viewId) {
-      setEditId(viewId);
-      setViewId(null);
+    if (viewPassword) {
+      setEditPassword(viewPassword);
+      setViewPassword(null);
     }
   };
 
@@ -258,15 +264,15 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
         onCloseSnackbar={handleCloseSnackbar}
       />
       <ViewPasswordModal
-        open={!!viewId}
-        passwordId={viewId}
+        open={!!viewPassword}
+        password={viewPassword}
         onClose={handleViewClose}
         onEdit={handleViewToEdit}
       />
       <EditPasswordModal
-        open={!!editId}
-        passwordId={editId}
-        onClose={() => setEditId(null)}
+        open={!!editPassword}
+        password={editPassword}
+        onClose={() => setEditPassword(null)}
       />
 
       <Dialog

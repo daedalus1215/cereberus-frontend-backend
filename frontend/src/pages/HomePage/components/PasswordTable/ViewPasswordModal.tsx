@@ -19,42 +19,54 @@ import {
 } from "@mui/icons-material";
 import { useFetchPassword } from "../../hooks/useFetchPassword";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import type { PasswordEntryResponse } from "./types";
 
 export type ViewPasswordModalProps = {
   open: boolean;
-  passwordId: string | null;
+  password: PasswordEntryResponse | null;
   onClose: () => void;
   onEdit?: () => void;
 };
 
 export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
   open,
-  passwordId,
+  password,
   onClose,
   onEdit,
 }) => {
   const isMobile = useIsMobile();
+  const [shouldFetchPassword, setShouldFetchPassword] = useState(false);
   const { revealedPassword, isLoadingPassword, setRevealedId } =
-    useFetchPassword(passwordId);
+    useFetchPassword(shouldFetchPassword ? password?.id || null : null);
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (open && passwordId) {
-      setRevealedId(passwordId);
+    if (open) {
       setShowPassword(false);
       setCopied(false);
+      setShouldFetchPassword(false);
     }
-  }, [open, passwordId, setRevealedId]);
+  }, [open]);
 
   const handleRevealToggle = () => {
-    if (!revealedPassword) {
+    if (!shouldFetchPassword && password) {
+      setShouldFetchPassword(true);
+      setRevealedId(password.id);
+      setShowPassword(true);
       return;
     }
     setShowPassword(!showPassword);
   };
 
   const handleCopyPassword = async () => {
+    if (!shouldFetchPassword) {
+      if (password) {
+        setShouldFetchPassword(true);
+        setRevealedId(password.id);
+      }
+      return;
+    }
     if (!revealedPassword?.password) {
       return;
     }
@@ -122,19 +134,11 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
           Password Details
         </Typography>
 
-        {isLoadingPassword ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              minHeight: 200,
-              py: 4,
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        ) : revealedPassword ? (
+        {!password ? (
+          <Typography color="error" align="center" sx={{ py: 2 }}>
+            Password not found
+          </Typography>
+        ) : (
           <>
             <Box
               sx={{
@@ -163,12 +167,12 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                     variant="body1"
                     sx={{ wordBreak: "break-all", flex: 1 }}
                   >
-                    {revealedPassword.name}
+                    {password.name}
                   </Typography>
                   <Tooltip title="Copy name">
                     <IconButton
                       size="small"
-                      onClick={() => handleCopyField(revealedPassword.name)}
+                      onClick={() => handleCopyField(password.name)}
                     >
                       <ContentCopy fontSize="small" />
                     </IconButton>
@@ -198,12 +202,12 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                     variant="body1"
                     sx={{ wordBreak: "break-all", flex: 1 }}
                   >
-                    {revealedPassword.username}
+                    {password.username}
                   </Typography>
                   <Tooltip title="Copy username">
                     <IconButton
                       size="small"
-                      onClick={() => handleCopyField(revealedPassword.username)}
+                      onClick={() => handleCopyField(password.username)}
                     >
                       <ContentCopy fontSize="small" />
                     </IconButton>
@@ -229,37 +233,77 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                     flexWrap: "wrap",
                   }}
                 >
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      wordBreak: "break-all",
-                      flex: 1,
-                      filter: showPassword ? "none" : "blur(6px)",
-                      fontFamily: "monospace",
-                    }}
-                  >
-                    {revealedPassword.password}
-                  </Typography>
-                  <Box sx={{ display: "flex", gap: 0.5 }}>
-                    <Tooltip title={showPassword ? "Hide password" : "Show password"}>
-                      <IconButton size="small" onClick={handleRevealToggle}>
-                        {showPassword ? (
-                          <VisibilityOff fontSize="small" />
-                        ) : (
-                          <Visibility fontSize="small" />
-                        )}
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={copied ? "Copied!" : "Copy password"}>
-                      <IconButton size="small" onClick={handleCopyPassword}>
-                        <ContentCopy fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
+                  {isLoadingPassword ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        flex: 1,
+                      }}
+                    >
+                      <CircularProgress size={16} />
+                      <Typography variant="body2" color="text.secondary">
+                        Loading password...
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          wordBreak: "break-all",
+                          flex: 1,
+                          filter:
+                            shouldFetchPassword && showPassword
+                              ? "none"
+                              : "blur(6px)",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {shouldFetchPassword && revealedPassword
+                          ? revealedPassword.password
+                          : password.password}
+                      </Typography>
+                      <Box sx={{ display: "flex", gap: 0.5 }}>
+                        <Tooltip
+                          title={
+                            shouldFetchPassword && showPassword
+                              ? "Hide password"
+                              : "Reveal password"
+                          }
+                        >
+                          <IconButton
+                            size="small"
+                            onClick={handleRevealToggle}
+                            disabled={isLoadingPassword}
+                          >
+                            {shouldFetchPassword && showPassword ? (
+                              <VisibilityOff fontSize="small" />
+                            ) : (
+                              <Visibility fontSize="small" />
+                            )}
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title={copied ? "Copied!" : "Copy password"}>
+                          <IconButton
+                            size="small"
+                            onClick={handleCopyPassword}
+                            disabled={
+                              isLoadingPassword ||
+                              (!shouldFetchPassword && !revealedPassword)
+                            }
+                          >
+                            <ContentCopy fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </>
+                  )}
                 </Box>
               </Box>
 
-              {revealedPassword.url && (
+              {password.url && (
                 <>
                   <Divider />
                   <Box>
@@ -296,15 +340,15 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                             textDecoration: "underline",
                             cursor: "pointer",
                           }}
-                          onClick={() => window.open(revealedPassword.url, "_blank")}
+                          onClick={() => window.open(password.url, "_blank")}
                         >
-                          {revealedPassword.url}
+                          {password.url}
                         </Typography>
                       </Box>
                       <Tooltip title="Copy URL">
                         <IconButton
                           size="small"
-                          onClick={() => handleCopyField(revealedPassword.url)}
+                          onClick={() => handleCopyField(password.url)}
                         >
                           <ContentCopy fontSize="small" />
                         </IconButton>
@@ -314,7 +358,7 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                 </>
               )}
 
-              {revealedPassword.notes && (
+              {password.notes && (
                 <>
                   <Divider />
                   <Box>
@@ -332,13 +376,13 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                         whiteSpace: "pre-wrap",
                       }}
                     >
-                      {revealedPassword.notes}
+                      {password.notes}
                     </Typography>
                   </Box>
                 </>
               )}
 
-              {revealedPassword.tags.length > 0 && (
+              {password.tags.length > 0 && (
                 <>
                   <Divider />
                   <Box>
@@ -356,7 +400,7 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                         flexWrap: "wrap",
                       }}
                     >
-                      {revealedPassword.tags.map((tag) => (
+                      {password.tags.map((tag) => (
                         <Chip
                           key={tag.id}
                           label={tag.name}
@@ -402,10 +446,6 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
               )}
             </Box>
           </>
-        ) : (
-          <Typography color="error" align="center" sx={{ py: 2 }}>
-            Password not found
-          </Typography>
         )}
       </Box>
     </Modal>

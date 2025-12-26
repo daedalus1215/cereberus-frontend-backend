@@ -49,7 +49,7 @@ export function HomePage() {
 
       <EditPasswordModal
         open={showModal}
-        passwordId={editingPassword?.id || null}
+        password={editingPassword}
         onClose={handleCloseModal}
       />
     </Box>
