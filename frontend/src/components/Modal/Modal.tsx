@@ -9,12 +9,14 @@ type props = {
   handleCloseModal: () => void;
   isModalShowing: boolean;
   isClosedButtonDisabled: boolean;
+  "aria-labelledby"?: string;
 };
 export const Modal: React.FC<props> = ({
   children,
   handleCloseModal,
   isModalShowing,
   isClosedButtonDisabled,
+  "aria-labelledby": ariaLabelledBy,
 }) => {
   const getModalStyle = useGetModalStyle();
 
@@ -22,7 +24,7 @@ export const Modal: React.FC<props> = ({
     <MuiModal
       open={isModalShowing}
       onClose={handleCloseModal}
-      aria-labelledby="create-password-modal-title"
+      aria-labelledby={ariaLabelledBy || "create-password-modal-title"}
     >
       <Box sx={getModalStyle()}>
         <IconButton

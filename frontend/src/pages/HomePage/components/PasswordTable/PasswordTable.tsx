@@ -106,9 +106,12 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
 
   const handleEdit = () => {
     if (selectedRowId) {
-      const passwordToEdit = filteredData.find((p) => p.id === selectedRowId);
+      const passwordToEdit = data.find((p) => p.id === selectedRowId);
       if (passwordToEdit) {
-        setEditPassword(passwordToEdit);
+        setEditPassword({
+          ...passwordToEdit,
+          password: "********",
+        });
       }
     }
     handleMenuClose();
@@ -163,9 +166,12 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
   };
 
   const handleRowClick = (id: string) => {
-    const passwordToView = filteredData.find((p) => p.id === id);
+    const passwordToView = data.find((p) => p.id === id);
     if (passwordToView) {
-      setViewPassword(passwordToView);
+      setViewPassword({
+        ...passwordToView,
+        password: "********",
+      });
     }
   };
 
