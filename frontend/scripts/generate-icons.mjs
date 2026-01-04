@@ -21,7 +21,7 @@ for (const { name, size } of sizes) {
   await sharp(svgBuffer)
     .resize(size, size, {
       fit: 'contain',
-      background: { r: 255, g: 255, b: 255, alpha: 0 }
+      background: { r: 30, g: 30, b: 46, alpha: 1 }
     })
     .png()
     .toFile(outputPath);
