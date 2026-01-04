@@ -1,68 +1,73 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { FetchPasswordResponder } from "../fetch-password.responder";
-import { PasswordToDtoConverter } from "../../../shared/converters/password-to-dto.converter";
+import { EncryptionAdapter } from "../../../../../../infra/encryption/encryption.adapter";
 import { Password } from "../../../../../../domain/entities/password.entity";
 import { PasswordResponseDto } from "../../../shared/dtos/responses/password.response.dto";
 
 describe("FetchPasswordResponder", () => {
   let target: FetchPasswordResponder;
-  let passwordToDtoConverter: jest.Mocked<PasswordToDtoConverter>;
+  let encryptionAdapter: jest.Mocked<EncryptionAdapter>;
 
   beforeEach(async () => {
-    const mockPasswordToDtoConverter = {
-      apply: jest.fn(),
+    const mockEncryptionAdapter = {
+      decrypt: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FetchPasswordResponder,
         {
-          provide: PasswordToDtoConverter,
-          useValue: mockPasswordToDtoConverter,
+          provide: EncryptionAdapter,
+          useValue: mockEncryptionAdapter,
         },
       ],
     }).compile();
 
     target = module.get<FetchPasswordResponder>(FetchPasswordResponder);
-    passwordToDtoConverter = module.get(PasswordToDtoConverter);
+    encryptionAdapter = module.get(EncryptionAdapter);
   });
 
   describe("apply", () => {
     it("should return converted password DTO when password exists", () => {
+      const createdDate = new Date();
+      const lastModifiedDate = new Date();
+      const encryptedPassword = "encrypted:password";
+      const decryptedPassword = "decryptedpassword";
+
       const mockPassword: Password = {
         id: 1,
         name: "Test Password",
         username: "testuser",
-        password: "testpass",
+        password: encryptedPassword,
         userId: "user123",
-        createdDate: new Date(),
-        lastModifiedDate: new Date(),
+        createdDate,
+        lastModifiedDate,
         tags: [],
       };
 
-      const mockResponseDto = new PasswordResponseDto({
-        id: 1,
-        name: "Test Password",
-        username: "testuser",
-        password: "testpass",
-        createdDate: new Date(),
-        lastModifiedDate: new Date(),
-        tags: [],
-      });
-
-      passwordToDtoConverter.apply.mockReturnValue(mockResponseDto);
+      encryptionAdapter.decrypt.mockReturnValue(decryptedPassword);
 
       const result = target.apply(mockPassword);
 
-      expect(result).toEqual(mockResponseDto);
-      expect(passwordToDtoConverter.apply).toHaveBeenCalledWith(mockPassword);
+      expect(result).toBeInstanceOf(PasswordResponseDto);
+      expect(result).toEqual({
+        id: 1,
+        name: "Test Password",
+        username: "testuser",
+        password: decryptedPassword,
+        userId: "user123",
+        createdDate,
+        lastModifiedDate,
+        tags: [],
+      });
+      expect(encryptionAdapter.decrypt).toHaveBeenCalledWith(encryptedPassword);
     });
 
     it("should return null when password is null", () => {
       const result = target.apply(null);
 
       expect(result).toBeNull();
-      expect(passwordToDtoConverter.apply).not.toHaveBeenCalled();
+      expect(encryptionAdapter.decrypt).not.toHaveBeenCalled();
     });
   });
 });
