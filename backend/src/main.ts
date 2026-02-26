@@ -30,9 +30,13 @@ async function bootstrap() {
     },
     crossOriginEmbedderPolicy: false, // For PWA
   }));
+  const corsOrigin = process.env.FRONTEND_ORIGIN
+    ? process.env.FRONTEND_ORIGIN.split(",").map((s) => s.trim())
+    : process.env.FRONTEND_URL
+      ? [process.env.FRONTEND_URL]
+      : true;
   app.enableCors({
-    origin:
-      process.env.NODE_ENV === "development" ? true : process.env.FRONTEND_URL,
+    origin: corsOrigin,
     methods: "GET,HEAD,PUT,PUT,PATCH,POST,DELETE,OPTIONS",
     credentials: true,
   });

@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
 import { UsersModule } from "./users/users.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
@@ -7,14 +8,16 @@ import { User } from "./users/domain/entities/user.entity";
 import { PasswordModule } from "./password/password.module";
 import { Password } from "./password/domain/entities/password.entity";
 import { Tag } from "./password/domain/entities/tag.entity";
-import { ThrottlerModule } from "@nestjs/throttler";
+import { SecurityEvent } from "./security-events/domain/entities/security-event.entity";
+import { SecurityEventsModule } from "./security-events/security-events.module";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 
 @Module({
   imports: [
     ThrottlerModule.forRoot([
       {
-        ttl: 60, // time to live (seconds)
-        limit: 10, // max requests per ttl per IP
+        ttl: 60_000,
+        limit: 100,
       },
     ]),
     ConfigModule.forRoot({
@@ -26,17 +29,23 @@ import { ThrottlerModule } from "@nestjs/throttler";
       useFactory: async (configService: ConfigService) => ({
         type: "sqlite",
         database: configService.get<string>("DATABASE"),
-        entities: [User, Password, Tag],
+        entities: [User, Password, Tag, SecurityEvent],
         synchronize: false,
         runMigrations: true,
       }),
       inject: [ConfigService],
     }),
+    SecurityEventsModule,
     UsersModule,
     AuthModule,
     PasswordModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
