@@ -5,9 +5,14 @@ import { UsersController } from "./app/controllers/users.controller";
 import { User } from "./domain/entities/user.entity";
 import { ConfigModule } from "@nestjs/config";
 import { UserRepository } from "./infra/repositories/user.repository";
+import { SecurityEventsModule } from "src/security-events/security-events.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), ConfigModule],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    ConfigModule,
+    SecurityEventsModule,
+  ],
   providers: [UsersService, UserRepository],
   controllers: [UsersController],
   exports: [UsersService],
