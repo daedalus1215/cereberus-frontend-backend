@@ -11,6 +11,10 @@ import { ConfigService } from "@nestjs/config";
 import { omit } from "lodash";
 import type { DisabledRegistrationContext } from "../../security-events/domain/aggregators/security-event.aggregator";
 import { SecurityEventAggregator } from "../../security-events/domain/aggregators/security-event.aggregator";
+import { UpdateUserPasswordTransactionScript } from "./transaction-scripts/update-user-password-TS/update-user-password.transaction.script";
+import { UpdateUsernameTransactionScript } from "./transaction-scripts/update-username-TS/update-username.transaction.script";
+import type { UpdateUserPasswordCommand } from "./transaction-scripts/update-user-password-TS/update-user-password.command";
+import type { UpdateUsernameCommand } from "./transaction-scripts/update-username-TS/update-username.command";
 
 @Injectable()
 export class UsersService {
@@ -18,6 +22,8 @@ export class UsersService {
     private readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
     private readonly securityEventAggregator: SecurityEventAggregator,
+    private readonly updateUserPasswordTransactionScript: UpdateUserPasswordTransactionScript,
+    private readonly updateUsernameTransactionScript: UpdateUsernameTransactionScript,
   ) {}
 
   /**
@@ -68,5 +74,15 @@ export class UsersService {
 
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findById(id);
+  }
+
+  async updateUserPassword(command: UpdateUserPasswordCommand): Promise<void> {
+    return this.updateUserPasswordTransactionScript.apply(command);
+  }
+
+  async updateUsername(
+    command: UpdateUsernameCommand,
+  ): Promise<Omit<User, "password">> {
+    return this.updateUsernameTransactionScript.apply(command);
   }
 }

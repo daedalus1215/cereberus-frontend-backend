@@ -10,6 +10,7 @@ import { LandingPage } from "./pages/LandingPage/LandingPage";
 import { LoginPage } from "./pages/LoginPage/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage/RegisterPage";
 import { HomePage } from "./pages/HomePage/HomePage";
+import { SettingsPage } from "./pages/SettingsPage/SettingsPage";
 import { Header } from "./components/Header/Header";
 
 const ROUTES = {
@@ -21,15 +22,13 @@ function AppRoutes() {
   const { isAuthenticated } = useAuth();
   if (isAuthenticated) {
     return (
-      <>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          {/* Redirect authenticated users trying to access auth pages */}
-          <Route path="/login" element={<Navigate to="/" replace />} />
-          <Route path="/register" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/login" element={<Navigate to="/" replace />} />
+        <Route path="/register" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     );
   }
 
@@ -42,8 +41,6 @@ function AppRoutes() {
         id={ROUTES.REGISTER_PAGE}
       />
       <Route path="/" element={<LandingPage />} id={ROUTES.LANDING_PAGE} />
-      {/* Redirect unauthenticated users trying to access protected pages */}
-      {/* <Route path="*" element={<Navigate to="/login" replace />} /> */}
     </Routes>
   );
 }
