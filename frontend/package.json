@@ -33,6 +33,9 @@
     "react-router-dom": "^7.5.3",
     "vite-plugin-pwa": "^1.2.0"
   },
+  "overrides": {
+    "serialize-javascript": ">=7.0.3"
+  },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
     "@types/node": "^22.15.30",
