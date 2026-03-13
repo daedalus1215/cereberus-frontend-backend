@@ -2,8 +2,6 @@ import { useMutation } from "@tanstack/react-query";
 import { updateUsername, UpdateUsernameRequest } from "@/api/users";
 import { useAuth } from "@/auth/useAuth";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "@/App";
-
 export const useUpdateUsername = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
