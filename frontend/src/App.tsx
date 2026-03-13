@@ -13,7 +13,7 @@ import { HomePage } from "./pages/HomePage/HomePage";
 import { SettingsPage } from "./pages/SettingsPage/SettingsPage";
 import { Header } from "./components/Header/Header";
 
-const ROUTES = {
+export const ROUTES = {
   LANDING_PAGE: "landing-page",
   LOGIN_PAGE: "login-page",
   REGISTER_PAGE: "register-page",
