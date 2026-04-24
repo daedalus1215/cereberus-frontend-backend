@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import React, { useState, useCallback } from "react";
+import { useQuery, useQueryClient, useMutation, keepPreviousData } from "@tanstack/react-query";
 import {
   CircularProgress,
+  LinearProgress,
   Typography,
   Box,
   Fade,
@@ -14,7 +15,8 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { fetchPasswords, deletePassword } from "@/api/passwords";
+import { fetchPasswords, searchPasswords, deletePassword } from "@/api/passwords";
+import { SearchInput } from "./SearchInput";
 import { PasswordCard } from "./PasswordCard";
 import { PasswordTableDesktop } from "./PasswordTableDesktop";
 import { PasswordActions } from "./PasswordActions";
@@ -40,15 +42,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
-  const {
-    data = [],
-    isLoading,
-    error,
-  } = useQuery<PasswordEntryResponse[]>({
-    queryKey: ["passwords"],
-    queryFn: fetchPasswords,
-  });
-
+  const [searchQuery, setSearchQuery] = useState("");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<null | string>(null);
   const [copySnackbar, setCopySnackbar] = useState(false);
@@ -64,6 +58,21 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
     message: string;
   }>({ open: false, success: false, message: "" });
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+
+  const {
+    data = [],
+    isLoading,
+    isFetching,
+    error,
+  } = useQuery<PasswordEntryResponse[]>({
+    queryKey: searchQuery ? ["passwords", "search", searchQuery] : ["passwords"],
+    queryFn: searchQuery ? () => searchPasswords(searchQuery) : fetchPasswords,
+    placeholderData: keepPreviousData,
+  });
+
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
 
   const { revealedPassword, isLoadingPassword, setRevealedId, revealedId } =
     useFetchPassword(selectedRowId);
@@ -236,6 +245,8 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
 
   return (
     <>
+      <SearchInput onSearch={handleSearch} />
+      {isFetching && <LinearProgress sx={{ mb: 1 }} />}
       <TagFilter
         selectedTagIds={selectedTagIds}
         onTagToggle={handleTagToggle}
@@ -270,9 +281,11 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
             ))
           ) : (
             <Typography align="center" sx={{ py: 4 }}>
-              {selectedTagIds.length > 0
-                ? "No passwords found matching the selected tags."
-                : "No passwords found."}
+              {searchQuery
+                ? "No passwords found matching your search."
+                : selectedTagIds.length > 0
+                  ? "No passwords found matching the selected tags."
+                  : "No passwords found."}
             </Typography>
           )}
         </Box>

@@ -10,18 +10,21 @@ import { AddPasswordTransactionScript } from "./domain/transaction-scripts/add-p
 import { UpdatePasswordTransactionScript } from "./domain/transaction-scripts/update-password.transaction.script";
 import { DeletePasswordTransactionScript } from "./domain/transaction-scripts/delete-password.transaction.script";
 import { FetchTagsTransactionScript } from "./domain/transaction-scripts/fetch-tags.transaction.script";
+import { SearchPasswordsTransactionScript } from "./domain/transaction-scripts/search-passwords.transaction.script";
 import { AddPasswordAction } from "./apps/controllers/actions/add-password-action/add-password.action";
 import { FetchPasswordsAction } from "./apps/controllers/actions/fetch-passwords-action/fetch-passwords.action";
 import { FetchPasswordAction } from "./apps/controllers/actions/fetch-password-action/fetch-password.action";
 import { UpdatePasswordAction } from "./apps/controllers/actions/update-password-action/update-password.action";
 import { DeletePasswordAction } from "./apps/controllers/actions/delete-password-action/delete-password.action";
 import { FetchTagsAction } from "./apps/controllers/actions/fetch-tags-action/fetch-tags.action";
+import { SearchPasswordsAction } from "./apps/controllers/actions/search-passwords-action/search-passwords.action";
 import { AuthModule } from "src/auth/auth.module";
 import { EncryptionAdapter } from "./infra/encryption/encryption.adapter";
 import { ConfigService } from "@nestjs/config";
 import { FetchPasswordsResponder } from "./apps/controllers/actions/fetch-passwords-action/responders/fetch-passwords.responder";
 import { FetchPasswordResponder } from "./apps/controllers/actions/fetch-password-action/responders/fetch-password.responder";
 import { PasswordToDtoConverter } from "./apps/controllers/actions/shared/converters/password-to-dto.converter";
+import { SearchPasswordsResponder } from "./apps/controllers/actions/search-passwords-action/responders/search-passwords.responder";
 
 @Module({
   imports: [TypeOrmModule.forFeature([Password, Tag]), AuthModule],
@@ -43,13 +46,16 @@ import { PasswordToDtoConverter } from "./apps/controllers/actions/shared/conver
     UpdatePasswordTransactionScript,
     DeletePasswordTransactionScript,
     FetchTagsTransactionScript,
+    SearchPasswordsTransactionScript,
     FetchPasswordsResponder,
     FetchPasswordResponder,
     PasswordToDtoConverter,
+    SearchPasswordsResponder,
   ],
   controllers: [
     AddPasswordAction,
     FetchPasswordsAction,
+    SearchPasswordsAction,
     FetchPasswordAction,
     UpdatePasswordAction,
     DeletePasswordAction,

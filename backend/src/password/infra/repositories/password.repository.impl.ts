@@ -35,4 +35,23 @@ export class PasswordRepositoryImpl {
       throw new NotFoundException("Password not found or access denied");
     }
   }
+
+  async searchByUserWithQuery(
+    userId: string,
+    query: string,
+  ): Promise<Password[]> {
+    const qb = this.repo.createQueryBuilder("password");
+
+    qb.where("password.userId = :userId", { userId })
+      .leftJoinAndSelect("password.tags", "tags");
+
+    if (query && query.trim().length > 0) {
+      qb.andWhere(
+        "(password.name LIKE :query OR password.username LIKE :query OR password.url LIKE :query OR password.notes LIKE :query)",
+        { query: `%${query}%` },
+      );
+    }
+
+    return qb.getMany();
+  }
 }

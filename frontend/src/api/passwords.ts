@@ -16,3 +16,10 @@ export const fetchPassword = async (
 export const deletePassword = async (id: string): Promise<void> => {
   await api.delete(`passwords/${id}`);
 };
+
+export const searchPasswords = async (
+  query: string,
+): Promise<PasswordEntryResponse[]> => {
+  const res = await api.get("passwords/search", { params: { query } });
+  return res.data;
+};

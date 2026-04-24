@@ -4,6 +4,8 @@ import { ValidationPipe } from "@nestjs/common";
 import * as fs from "fs";
 import { HttpsOptions } from "@nestjs/common/interfaces/external/https-options.interface";
 import helmet from "helmet";
+import pino from "pino";
+import pinoHttp from "pino-http";
 
 async function bootstrap() {
   let httpsOptions: HttpsOptions | undefined;
@@ -46,6 +48,24 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+    }),
+  );
+
+  app.use(
+    pinoHttp({
+      logger: pino({ level: process.env.NODE_ENV === "development" ? "debug" : "info" }),
+      customProps: () => ({ context: "http" }),
+      serializers: {
+        req: (req) => ({
+          method: req.method,
+          url: req.url,
+          query: req.query,
+          body: req.body,
+        }),
+        res: (res) => ({
+          statusCode: res.statusCode,
+        }),
+      },
     }),
   );
 
