@@ -1,7 +1,3 @@
-/**
- * Security utilities for frontend
- * Implements additional security measures to protect against common attacks
- */
 
 /**
  * Sanitize user input to prevent XSS attacks
@@ -12,7 +8,7 @@ export const sanitizeInput = (input: string): string => {
   if (typeof input !== 'string') {
     return '';
   }
-  
+
   // Remove potentially dangerous characters
   return input
     .replace(/[<>]/g, '') // Remove < and > characters
@@ -33,27 +29,27 @@ export const validatePasswordStrength = (password: string): {
   if (!password) {
     return { isValid: false, message: 'Password is required' };
   }
-  
+
   if (password.length < 8) {
     return { isValid: false, message: 'Password must be at least 8 characters long' };
   }
-  
+
   if (!/(?=.*[a-z])/.test(password)) {
     return { isValid: false, message: 'Password must contain at least one lowercase letter' };
   }
-  
+
   if (!/(?=.*[A-Z])/.test(password)) {
     return { isValid: false, message: 'Password must contain at least one uppercase letter' };
   }
-  
+
   if (!/(?=.*\d)/.test(password)) {
     return { isValid: false, message: 'Password must contain at least one number' };
   }
-  
-  if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(password)) {
+
+  if (!/(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/.test(password)) {
     return { isValid: false, message: 'Password must contain at least one special character' };
   }
-  
+
   return { isValid: true, message: 'Password is strong' };
 };
 
@@ -65,12 +61,12 @@ export const isSecureEnvironment = (): boolean => {
   if (typeof window === 'undefined') {
     return true; // Server-side rendering
   }
-  
+
   // In development, allow HTTP
   if (process.env.NODE_ENV === 'development') {
     return true;
   }
-  
+
   // In production, require HTTPS
   return window.location.protocol === 'https:';
 };
@@ -96,7 +92,7 @@ export const maskSensitiveData = (data: string, visibleChars: number = 4): strin
   if (!data || data.length <= visibleChars) {
     return '*'.repeat(8);
   }
-  
+
   const maskedLength = Math.max(8, data.length - visibleChars);
   return '*'.repeat(maskedLength) + data.slice(-visibleChars);
 };
@@ -109,7 +105,7 @@ export const isSecureContext = (): boolean => {
   if (typeof window === 'undefined') {
     return true; // Server-side rendering
   }
-  
+
   return window.isSecureContext;
 };
 

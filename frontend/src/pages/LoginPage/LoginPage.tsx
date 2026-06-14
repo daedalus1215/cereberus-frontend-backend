@@ -17,6 +17,7 @@ export const LoginPage: React.FC = () => {
       }
       return success;
     } catch (error) {
+      console.error(error)
       console.error("Login error: Authentication failed");
       return false;
     }

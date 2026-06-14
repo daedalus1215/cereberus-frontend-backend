@@ -75,7 +75,7 @@ export const useAuthProvider = () => {
         tokenStorage.setToken(access_token);
         setUser(userData);
         return true;
-      } catch (error) {
+      } catch {
         // Log error without exposing sensitive information
         console.error("Login failed: Authentication error");
         return false;
@@ -119,7 +119,7 @@ export const useAuthProvider = () => {
             username: decoded.username,
           };
           setUser(userData);
-        } catch (error) {
+        } catch {
           setUser(null);
         }
       }

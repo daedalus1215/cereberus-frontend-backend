@@ -75,6 +75,7 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
+      console.error(err)
       console.error("Failed to copy password to clipboard");
     }
   };
@@ -85,6 +86,7 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
+      console.error(err)
       console.error("Failed to copy to clipboard");
     }
   };

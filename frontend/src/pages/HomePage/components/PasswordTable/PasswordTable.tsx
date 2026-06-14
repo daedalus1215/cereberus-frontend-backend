@@ -158,6 +158,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
       await navigator.clipboard.writeText(password);
       setCopySnackbar(true);
     } catch (err) {
+      console.error(err)
       console.error("Failed to copy password to clipboard");
     }
   };
