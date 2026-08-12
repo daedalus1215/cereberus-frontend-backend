@@ -8,15 +8,25 @@ import pino from "pino";
 import pinoHttp from "pino-http";
 
 async function bootstrap() {
-  let httpsOptions: HttpsOptions | undefined;
-  if (process.env.NODE_ENV === "development") {
-    httpsOptions = undefined;
-  } else {
-    httpsOptions = {
-      key: fs.readFileSync(process.env.SSL_KEY_PATH),
-      cert: fs.readFileSync(process.env.SSL_CERT_PATH),
-    };
-  }
+  // ⚠️ TLS is now opt-in by CONFIG, not by NODE_ENV.
+  //
+  // It used to key off `NODE_ENV === "development"`, which meant production was supposed
+  // to terminate TLS here — except the live box runs NODE_ENV=development, so the branch
+  // never executed and it has been serving plain HTTP all along.
+  //
+  // Behind Traefik the app should serve HTTP: Traefik terminates TLS and forwards over the
+  // container network. Setting NODE_ENV=production with the old logic would have crashed
+  // on a missing cert file. Keying off the paths keeps the capability for anyone running
+  // it standalone, and does the right thing in a container where they are unset.
+  const sslKeyPath = process.env.SSL_KEY_PATH;
+  const sslCertPath = process.env.SSL_CERT_PATH;
+  const httpsOptions: HttpsOptions | undefined =
+    sslKeyPath && sslCertPath
+      ? {
+          key: fs.readFileSync(sslKeyPath),
+          cert: fs.readFileSync(sslCertPath),
+        }
+      : undefined;
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
 
@@ -69,6 +79,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT);
+  // 0.0.0.0: localhost-only is unreachable from outside a container.
+  await app.listen(process.env.PORT ?? 3000, "0.0.0.0");
 }
 bootstrap();

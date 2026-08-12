@@ -20,6 +20,6 @@ export class SecurityEvent {
   @Column({ name: "metadata", type: "text", nullable: true })
   metadata: string;
 
-  @CreateDateColumn({ name: "created_at", type: "datetime" })
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;
 }

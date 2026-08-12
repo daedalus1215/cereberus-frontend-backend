@@ -24,10 +24,10 @@ export class Password {
   @Column()
   password: string;
 
-  @CreateDateColumn({ name: "created_date" })
+  @CreateDateColumn({ name: "created_date", type: "timestamptz" })
   createdDate: Date;
 
-  @UpdateDateColumn({ name: "last_modified_date" })
+  @UpdateDateColumn({ name: "last_modified_date", type: "timestamptz" })
   lastModifiedDate: Date;
 
   @Column({ name: "user_id" })
