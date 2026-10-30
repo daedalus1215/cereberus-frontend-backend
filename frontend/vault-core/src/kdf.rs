@@ -4,11 +4,11 @@ use hkdf::Hkdf;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use unicode_normalization::UnicodeNormalization;
-use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
+use zeroize::Zeroizing;
 
 use crate::Error;
+use crate::secret::{KEY_LEN, KeyBytes, burn_stack};
 
-pub(crate) const KEY_LEN: usize = 32;
 const SALT_LEN: usize = 16;
 
 const INFO_AUTH: &[u8] = b"cereberus/v1/auth";
@@ -74,19 +74,17 @@ impl KdfParams {
 }
 
 /// Sent at login in place of the password. Knowing it doesn't help decrypt anything.
-#[derive(Zeroize, ZeroizeOnDrop)]
-pub struct AuthKey([u8; KEY_LEN]);
+pub struct AuthKey(KeyBytes);
 
 impl AuthKey {
     /// The form sent to the server.
     pub fn to_base64url(&self) -> Zeroizing<String> {
-        Zeroizing::new(BASE64URL_NOPAD.encode(&self.0))
+        Zeroizing::new(BASE64URL_NOPAD.encode(self.0.as_array()))
     }
 }
 
 /// Wraps the vault key. Never leaves the device.
-#[derive(Zeroize, ZeroizeOnDrop)]
-pub struct Kek(pub(crate) [u8; KEY_LEN]);
+pub struct Kek(pub(crate) KeyBytes);
 
 /// What a master password turns into.
 pub struct DerivedKeys {
@@ -123,27 +121,42 @@ pub fn derive_keys(
     // A phone and a laptop can type different bytes for the same text.
     let normalized = Zeroizing::new(master_password.nfkc().collect::<String>());
 
+    let master_key = run_argon2(normalized.as_bytes(), &salt, params);
+    burn_stack();
+    let master_key = master_key?;
+
+    Ok(DerivedKeys {
+        auth_key: AuthKey(derive_subkey(&master_key, INFO_AUTH)),
+        kek: Kek(derive_subkey(&master_key, INFO_KEK)),
+    })
+}
+
+#[inline(never)]
+fn run_argon2(password: &[u8], salt: &[u8], params: &KdfParams) -> Result<KeyBytes, Error> {
     let argon2 = Argon2::new(
         Algorithm::Argon2id,
         Version::V0x13,
         Params::new(params.m, params.t, params.p, Some(KEY_LEN))
             .map_err(|_| Error::InvalidKdfParams)?,
     );
-    let mut master_key = Zeroizing::new([0u8; KEY_LEN]);
+    let mut master_key = KeyBytes::zeroed();
     argon2
-        .hash_password_into(normalized.as_bytes(), &salt, master_key.as_mut_slice())
+        .hash_password_into(password, salt, master_key.as_mut_slice())
         .map_err(|_| Error::InvalidKdfParams)?;
-
-    Ok(DerivedKeys {
-        auth_key: AuthKey(*derive_subkey(&master_key, INFO_AUTH)),
-        kek: Kek(*derive_subkey(&master_key, INFO_KEK)),
-    })
+    Ok(master_key)
 }
 
 /// HKDF-SHA256 with no salt: the input is already uniformly random.
-pub(crate) fn derive_subkey(ikm: &[u8; KEY_LEN], info: &[u8]) -> Zeroizing<[u8; KEY_LEN]> {
-    let mut okm = Zeroizing::new([0u8; KEY_LEN]);
-    Hkdf::<Sha256>::new(None, ikm)
+pub(crate) fn derive_subkey(ikm: &KeyBytes, info: &[u8]) -> KeyBytes {
+    let okm = run_hkdf(ikm, info);
+    burn_stack();
+    okm
+}
+
+#[inline(never)]
+fn run_hkdf(ikm: &KeyBytes, info: &[u8]) -> KeyBytes {
+    let mut okm = KeyBytes::zeroed();
+    Hkdf::<Sha256>::new(None, ikm.as_array())
         .expand(info, okm.as_mut_slice())
         .expect("32 bytes is within HKDF-SHA256's output limit");
     okm
@@ -174,37 +187,41 @@ mod tests {
         let a = derive_keys("correct horse", SALT, &fast()).unwrap();
         let b = derive_keys("correct horse", SALT, &fast()).unwrap();
         assert_eq!(*a.auth_key.to_base64url(), *b.auth_key.to_base64url());
-        assert_eq!(a.kek.0, b.kek.0);
+        assert_eq!(a.kek.0.as_array(), b.kek.0.as_array());
     }
 
     #[test]
     fn the_auth_key_and_kek_are_unrelated() {
         let keys = derive_keys("correct horse", SALT, &fast()).unwrap();
-        assert_ne!(keys.auth_key.0, keys.kek.0);
+        assert_ne!(keys.auth_key.0.as_array(), keys.kek.0.as_array());
     }
 
     #[test]
     fn a_different_password_salt_or_cost_gives_different_keys() {
-        let base = derive_keys("correct horse", SALT, &fast()).unwrap().kek.0;
-        let password = derive_keys("correct horsf", SALT, &fast()).unwrap().kek.0;
-        let salt = derive_keys("correct horse", "AQECAwQFBgcICQoLDA0ODw", &fast())
-            .unwrap()
-            .kek
-            .0;
-        let cost = derive_keys("correct horse", SALT, &KdfParams { t: 3, ..fast() })
-            .unwrap()
-            .kek
-            .0;
-        assert_ne!(base, password);
-        assert_ne!(base, salt);
-        assert_ne!(base, cost);
+        let kek = |password: &str, salt: &str, params: &KdfParams| {
+            *derive_keys(password, salt, params)
+                .unwrap()
+                .kek
+                .0
+                .as_array()
+        };
+        let base = kek("correct horse", SALT, &fast());
+        assert_ne!(base, kek("correct horsf", SALT, &fast()));
+        assert_ne!(
+            base,
+            kek("correct horse", "AQECAwQFBgcICQoLDA0ODw", &fast())
+        );
+        assert_ne!(
+            base,
+            kek("correct horse", SALT, &KdfParams { t: 3, ..fast() })
+        );
     }
 
     #[test]
     fn composed_and_decomposed_text_give_the_same_keys() {
         let composed = derive_keys("caf\u{e9}-p\u{e4}ss", SALT, &fast()).unwrap();
         let decomposed = derive_keys("cafe\u{301}-pa\u{308}ss", SALT, &fast()).unwrap();
-        assert_eq!(composed.kek.0, decomposed.kek.0);
+        assert_eq!(composed.kek.0.as_array(), decomposed.kek.0.as_array());
     }
 
     #[test]
@@ -302,8 +319,8 @@ mod tests {
         let auth = keys.auth_key.to_base64url();
         assert_eq!(auth.len(), 43);
         assert_eq!(
-            BASE64URL_NOPAD.decode(auth.as_bytes()).unwrap(),
-            keys.auth_key.0
+            BASE64URL_NOPAD.decode(auth.as_bytes()).unwrap().as_slice(),
+            keys.auth_key.0.as_array().as_slice()
         );
     }
 
