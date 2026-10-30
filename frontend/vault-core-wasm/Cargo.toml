@@ -1,0 +1,27 @@
+[package]
+name = "vault-core-wasm"
+version = "0.1.0"
+description = "vault-core for the browser"
+authors = ["daedalus1215"]
+license = ""
+repository = "https://github.com/daedalus1215/cereberus-frontend-backend"
+edition = "2024"
+rust-version = "1.90"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Random numbers come from the browser's crypto.getRandomValues.
+getrandom = { version = "0.4", features = ["wasm_js"] }
+serde_json = "1"
+vault-core = { path = "../vault-core" }
+# Pinned exactly, because the wasm-bindgen CLI in build.sh has to be the same version.
+wasm-bindgen = "=0.2.130"
+
+# Argon2id's speed decides how long unlocking takes, so this favours speed over size.
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
