@@ -39,13 +39,23 @@ vault key = 32 random bytes, made once at setup; survives master password change
 wrapped vault key = XChaCha20-Poly1305(KEK, vault key, aad "cereberus/v1/vault-key")
 
 recovery key = 32 random bytes, shown once, printed by the user
-recovery key  HKDF-SHA256, info "cereberus/v1/recovery-kek"   wraps the vault key a second time
+recovery key  HKDF-SHA256, info "cereberus/v1/recovery-kek"   wraps the vault key a second time,
+                                                              aad "cereberus/v1/recovery-vault-key"
 recovery key  HKDF-SHA256, info "cereberus/v1/recovery-auth"  proves possession to the server
 ```
 
-The server stores `bcrypt(auth key)` in the existing `user.password` column, so
-a database leak alone doesn't let anyone log in. Base64 of 32 bytes is 44
-characters, under bcrypt's 72-byte limit.
+- **The server stores `bcrypt(auth key)`** in the existing `user.password` column, so
+  a database leak alone doesn't let anyone log in. Keys and salts travel as base64url
+  without padding: the auth key is 43 characters, under bcrypt's 72-byte limit.
+- **The client refuses key derivation parameters out of range,** on every derivation.
+  They come from the server, which could otherwise ask for almost no work and guess
+  the password cheaply from the auth key. The floor is OWASP's minimum
+  (`m = 19 MiB, t = 2, p = 1`). The ceiling (`m = 256 MiB, t = 16, p = 4`) stops a server
+  crashing a phone. Raising the ceiling later needs a client update first.
+- **The recovery key is printed as Crockford base32** in groups of 5: 11 groups, 55
+  characters. That's the key plus 2 bytes of `SHA-256("cereberus/v1/recovery-check" ||
+  key)`, so a typo is caught on the device rather than using up the server's
+  5-a-minute limit. Case, spaces, hyphens and look-alike letters are forgiven.
 
 **An entry**
 
@@ -70,36 +80,75 @@ bytes, so the length gives away little:
   can't forge it. A device refuses an incoming copy with a lower `seq` than the
   one it holds.
 - Tags are names inside the entry. There's no separate tag table any more.
+- Every field is required apart from `conflictOf`, so a damaged entry is an error and
+  never a blank password. Fields a newer app added are kept and written back.
+- `v` above what this app knows is refused as "update the app", on read and on write.
+- Item ids must be canonical lowercase UUIDs, since two spellings of one id would be
+  two different `aad`s and an entry that can't be opened.
+- An entry that pads to more than 191 KiB is refused at encryption, because that's
+  what fits the server's 256 KiB limit. Otherwise it would sit in a queue forever.
+
+## For the review to check
+
+Accepted so far, and worth a second opinion:
+
+- **XChaCha20-Poly1305 isn't key-committing.** The classic attack on that is a
+  crafted ciphertext that tests many password guesses at once. It's accepted here
+  because the only password-derived key is the KEK, and a hostile server already holds
+  `bcrypt(auth key)` and can guess offline anyway.
+- **A hostile server can claim an account is still legacy.** Spec 4 guards against
+  that, since a client fooled by it would send the typed password.
+- **Nothing proves the set of entries is complete.** `seq` catches an old copy of an
+  entry a device already holds; it can't catch a server hiding an entry from a new
+  device.
+- **Wiping is best effort.** Moves can leave copies, and decrypted strings in the
+  webview can't be wiped at all.
 
 ## Commits
 
 ### Commit 1 — `feat(vault-core): key derivation and entry encryption`
 
-- [ ] New crate `frontend/vault-core` with no Tauri dependency. It sits outside
+- [x] New crate `frontend/vault-core` with no Tauri dependency. It sits outside
   `src-tauri` because [`frontend/.dockerignore`](../../frontend/.dockerignore)
   excludes that directory and the web image needs this crate.
-- [ ] Dependencies, all RustCrypto apart from the helpers: `argon2`, `hkdf`,
-  `sha2`, `chacha20poly1305`, `zeroize`, `unicode-normalization`, `base64`,
-  `serde`, `serde_json`, `getrandom`.
-- [ ] API: `derive_keys`, `create_vault`, `unwrap_vault_key`, `rewrap_vault_key`,
-  `encrypt_entry`, `decrypt_entry`, `create_recovery_key`, `unwrap_with_recovery`.
-- [ ] Key types zeroize on drop and have no `Debug` or `Serialize`. Nothing ever
-  logs a key or a decrypted field.
+- [x] Dependencies, RustCrypto apart from the helpers: `argon2` 0.6, `hkdf` 0.13,
+  `sha2` 0.11, `chacha20poly1305` 0.11, `zeroize`, `unicode-normalization`,
+  `data-encoding` (base64url and base32 from one crate), `serde`, `serde_json`,
+  `getrandom` 0.4. `static_assertions` for tests only.
+- [x] API: `derive_keys`, `new_salt`, `create_vault`, `unwrap_vault_key`,
+  `rewrap_vault_key`, `encrypt_entry`, `decrypt_entry`, `new_item_id`,
+  `create_recovery_key`, `unwrap_with_recovery`, `RecoveryKey::{parse, to_display,
+  recovery_auth}`.
+- [x] Key types zeroize on drop and have no `Debug`, `Clone` or `Serialize`, checked at
+  compile time. `Entry`'s `Debug` shows only `v` and `seq`, and errors carry no data.
 
 ### Commit 2 — `test(vault-core): fixed test vectors`
 
-- [ ] `frontend/vault-core/testdata/vectors.json`: fixed inputs and expected
-  outputs for each step, so an accidental format change fails a test. Spec 3
-  runs the same vectors against the WebAssembly build.
-- [ ] Failure cases: wrong password, tampered ciphertext, wrong item UUID in the
-  `aad`, unknown version prefix, broken padding. All return errors, none panic.
-- [ ] Unicode: precomposed and decomposed forms of the same password derive the
-  same keys.
+- [x] `frontend/vault-core/testdata/vectors.json`, **generated by a second
+  implementation** (`generate-vectors.mjs`: libsodium and Node's crypto, written from
+  this spec). The crate has to reproduce them byte for byte. Spec 3 runs the same
+  vectors against the WebAssembly build.
+- [x] Failure cases: wrong key, tampered ciphertext, wrong item UUID in the `aad`,
+  unknown version prefix, broken padding, missing field, newer version. Each returns
+  the expected error, and 2,000 rounds of hostile input never panic.
+- [x] Unicode: precomposed and decomposed forms, and a compatibility ligature, derive
+  the same keys as their normalised forms.
+- [x] `.github/workflows/vault-core.yml` runs the tests on any change to the crate, since
+  vectors only guard the format if something runs them. Not yet run on GitHub.
+
+Verified 2026-10-30: 65 tests pass, clippy is clean, and it compiles for
+`aarch64-linux-android`. The vectors matched the second implementation on the first
+run. 20 deliberate format breaks (labels, Argon2 variant and version, normalisation,
+padding, field names, parameter limits and more) were each caught by the vectors. None
+of the 45 locked dependencies has an advisory in OSV. **Not yet run on a phone or as
+WebAssembly.**
 
 ### Spikes — on a throwaway `spike/android-crypto` branch, not merged
 
 Android can only be tested through CI, so these go in one APK, with a bare debug
-screen.
+screen. `tauri-android-build.yml` builds pull requests, so a draft PR from this branch
+gets an APK without waiting for Spec 0's merge. It needs the signing secrets set.
+The browser half of S3 needs Commit 3.
 
 - [ ] **S1: Rust from a Kotlin service.** A small Android `Service` calls a JNI
   function in `app_lib` that uses `vault-core`, with `MainActivity` not running.
