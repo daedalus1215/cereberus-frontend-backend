@@ -111,7 +111,7 @@ pub fn new_item_id() -> Result<String, Error> {
 pub fn encrypt_entry(vault_key: &VaultKey, item_id: &str, entry: &Entry) -> Result<String, Error> {
     let aad = item_aad(item_id)?;
     let padded = to_padded_json(entry)?;
-    seal(&vault_key.0, aad.as_bytes(), &padded)
+    seal(vault_key.0.as_array(), aad.as_bytes(), &padded)
 }
 
 /// Only [`encrypt_entry`] should choose a nonce outside of tests.
@@ -124,7 +124,7 @@ pub(crate) fn encrypt_entry_with_nonce(
 ) -> Result<String, Error> {
     let aad = item_aad(item_id)?;
     let padded = to_padded_json(entry)?;
-    seal_with_nonce(&vault_key.0, nonce, aad.as_bytes(), &padded)
+    seal_with_nonce(vault_key.0.as_array(), nonce, aad.as_bytes(), &padded)
 }
 
 /// Decrypts an entry stored under an id.
@@ -134,7 +134,7 @@ pub fn decrypt_entry(
     ciphertext: &str,
 ) -> Result<Entry, Error> {
     let aad = item_aad(item_id)?;
-    let padded = open(&vault_key.0, aad.as_bytes(), ciphertext)?;
+    let padded = open(vault_key.0.as_array(), aad.as_bytes(), ciphertext)?;
     from_padded_json(&padded)
 }
 
@@ -199,13 +199,13 @@ fn from_padded_json(padded: &[u8]) -> Result<Entry, Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::kdf::KEY_LEN;
+    use crate::secret::KeyBytes;
 
     const ID: &str = "0f8fad5b-d9cb-469f-a165-70867728950e";
     const OTHER_ID: &str = "7c9e6679-7425-40de-944b-e07fc1f90ae7";
 
     fn key() -> VaultKey {
-        VaultKey([3; KEY_LEN])
+        VaultKey(KeyBytes::filled(3))
     }
 
     fn entry() -> Entry {
@@ -240,7 +240,7 @@ mod tests {
     }
 
     fn sealed_raw(bytes: &[u8]) -> String {
-        seal(&key().0, item_aad(ID).unwrap().as_bytes(), bytes).unwrap()
+        seal(key().0.as_array(), item_aad(ID).unwrap().as_bytes(), bytes).unwrap()
     }
 
     #[test]
@@ -271,7 +271,7 @@ mod tests {
     fn the_wrong_vault_key_fails() {
         let sealed = encrypt_entry(&key(), ID, &entry()).unwrap();
         assert_eq!(
-            decrypt_entry(&VaultKey([4; KEY_LEN]), ID, &sealed).err(),
+            decrypt_entry(&VaultKey(KeyBytes::filled(4)), ID, &sealed).err(),
             Some(Error::DecryptionFailed)
         );
     }
