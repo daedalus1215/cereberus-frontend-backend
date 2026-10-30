@@ -1,0 +1,63 @@
+name: Desktop build
+
+# Manual only (Actions → Run workflow): the desktop app is usually built and
+# installed locally (npm run desktop:install), so builds on every push would
+# mostly go unused.
+on:
+  # No server choice: the app asks for the server address and Cloudflare
+  # Access token on first launch, so one build serves prod and dev alike.
+  workflow_dispatch:
+
+# A newer run on the same branch makes a running build moot; cancel it so it
+# doesn't tie up runners or report a stale failure.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            name: linux-x64
+          - runner: ubuntu-24.04-arm
+            name: linux-arm64
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev patchelf xdg-utils
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: frontend/src-tauri -> target
+
+      - run: npm ci
+
+      - run: npm run desktop:build
+        env:
+          VITE_DEFAULT_SERVER_URL: ${{ vars.ANDROID_SERVER_URL }}
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: cereberus-desktop-${{ matrix.name }}
+          path: |
+            frontend/src-tauri/target/release/bundle/appimage/*.AppImage
+            frontend/src-tauri/target/release/bundle/deb/*.deb
+            frontend/src-tauri/target/release/bundle/rpm/*.rpm
+          if-no-files-found: error
