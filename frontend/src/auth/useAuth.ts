@@ -6,7 +6,9 @@ import {
   useEffect,
 } from "react";
 import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 import api from "../api/axios.interceptor";
+import { isAccessDenied } from "../tauri/cloudflare-access";
 import { tokenStorage } from "./tokenStorage";
 
 type User = {
@@ -75,10 +77,21 @@ export const useAuthProvider = () => {
         tokenStorage.setToken(access_token);
         setUser(userData);
         return true;
-      } catch {
+      } catch (error) {
         // Log error without exposing sensitive information
         console.error("Login failed: Authentication error");
-        return false;
+        // Only Cereberus turning the credentials down is a failed login.
+        // Anything else (no connection, the server down, Cloudflare Access
+        // rejecting the app's token) is thrown for the login page to report
+        // as such.
+        if (
+          axios.isAxiosError(error) &&
+          error.response?.status === 401 &&
+          !isAccessDenied(error)
+        ) {
+          return false;
+        }
+        throw error;
       }
     },
     [],
