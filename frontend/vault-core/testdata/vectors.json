@@ -12,7 +12,8 @@
         "p": 1
       },
       "authKey": "ZmNSZhWsPrwzGeuIFm6ZKSlZJ-pKw0LSup66SxRGmFI",
-      "kek": "cWUdeHZ4m_dGVcfx5EgCP7fwmSoICZDe3FlLK6dlftk"
+      "kek": "cWUdeHZ4m_dGVcfx5EgCP7fwmSoICZDe3FlLK6dlftk",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXQC1ZEGBudn7Z8cYdAhkjh-PcaJbclocNv6EcmvQ0BVhiViQhWl3wHyy5lhzb2r96"
     },
     {
       "name": "the cheapest parameters allowed",
@@ -25,7 +26,8 @@
         "p": 1
       },
       "authKey": "TgRNsNwo5RpP8RPgwK4HUcPZnVQjupgCm-fJ4S5qJgc",
-      "kek": "QQg_Bf1TZQCBnGrr1upQkuM-gzFUaYmlFnBl53D8oxk"
+      "kek": "QQg_Bf1TZQCBnGrr1upQkuM-gzFUaYmlFnBl53D8oxk",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXgHbUbwTnJ6HrdSUZQkl4-QByfHv3Lp3ORmwRF-zHYc_AjzSYDZ0kiD2t4aAFarWs"
     },
     {
       "name": "two lanes",
@@ -38,7 +40,8 @@
         "p": 2
       },
       "authKey": "dO3cgJd-efb-mEqiIOdHP3LwAzYCDCOppoGakUzEZCg",
-      "kek": "0dS_UxImfRAOkJRW1ST3P_n33D0VEXnnlnpIIdwCZsA"
+      "kek": "0dS_UxImfRAOkJRW1ST3P_n33D0VEXnnlnpIIdwCZsA",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXqa_wJ8uT_pBAR41BLiCnGJU3FGpnOHLCaDrnpWRRtPMeEqMqLX2aV_fCe6Hgyfbp"
     },
     {
       "name": "accents, precomposed",
@@ -51,7 +54,8 @@
         "p": 1
       },
       "authKey": "J4W20rIXLgD0ZoCz-khW6Ei9riF5wdlZN-d6rpRSJ6Y",
-      "kek": "MGRTnbyYvPeOM21KVSjMy3hBncGgm8wSE_VJBy6Za3A"
+      "kek": "MGRTnbyYvPeOM21KVSjMy3hBncGgm8wSE_VJBy6Za3A",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXI9RjtAxWNGCKdL38kycOGfsmqjOofKH2zEJUpZNd0ubKuTP3NuJLjipMwJCehkZE"
     },
     {
       "name": "accents, decomposed",
@@ -64,7 +68,8 @@
         "p": 1
       },
       "authKey": "J4W20rIXLgD0ZoCz-khW6Ei9riF5wdlZN-d6rpRSJ6Y",
-      "kek": "MGRTnbyYvPeOM21KVSjMy3hBncGgm8wSE_VJBy6Za3A"
+      "kek": "MGRTnbyYvPeOM21KVSjMy3hBncGgm8wSE_VJBy6Za3A",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXI9RjtAxWNGCKdL38kycOGfsmqjOofKH2zEJUpZNd0ubKuTP3NuJLjipMwJCehkZE"
     },
     {
       "name": "a compatibility ligature",
@@ -77,7 +82,8 @@
         "p": 1
       },
       "authKey": "IfAAIcUTwxLctZpOg4UgCVmFmht0k_NUSeMLToWDf28",
-      "kek": "JDt4EzlGUxCDotR-uE0ndw2kputpFkLgO6ZiBAd8UGU"
+      "kek": "JDt4EzlGUxCDotR-uE0ndw2kputpFkLgO6ZiBAd8UGU",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXLmy_UH9BmWSl-iBKW40HmEe4vht6myYG2_wfM5jh_hJ-5BCCrPgVfmB2uXYSzw4-"
     },
     {
       "name": "what that ligature normalises to",
@@ -90,7 +96,8 @@
         "p": 1
       },
       "authKey": "IfAAIcUTwxLctZpOg4UgCVmFmht0k_NUSeMLToWDf28",
-      "kek": "JDt4EzlGUxCDotR-uE0ndw2kputpFkLgO6ZiBAd8UGU"
+      "kek": "JDt4EzlGUxCDotR-uE0ndw2kputpFkLgO6ZiBAd8UGU",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXLmy_UH9BmWSl-iBKW40HmEe4vht6myYG2_wfM5jh_hJ-5BCCrPgVfmB2uXYSzw4-"
     },
     {
       "name": "emoji and other scripts",
@@ -103,7 +110,8 @@
         "p": 1
       },
       "authKey": "TBv6O61Ep4pDyBwQmEeBnBA3jDpXdQ7uiQ1fRVinSk4",
-      "kek": "yEyKeUZUJ24c8who6PEuOh4pWf3rl6cqjnNvb5KzOZw"
+      "kek": "yEyKeUZUJ24c8who6PEuOh4pWf3rl6cqjnNvb5KzOZw",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX3gzxrd2UiQCtXIqi5HawhEcgGG2diZO72_BJda75UTzwGXKP8GBSFq6OBnhTb12v"
     }
   ],
   "refusedParams": [
