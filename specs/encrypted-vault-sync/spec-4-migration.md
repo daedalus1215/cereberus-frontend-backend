@@ -55,6 +55,12 @@ pending items.
   notes, empty strings, entries without tags, non-ASCII text.
 - [ ] Refuse to start through the tunnel with a clear message, rather than hitting
   the export's refusal.
+- [ ] **A server can lie about `encryptionVersion`.** Reporting 0 for a migrated account
+  would trick a client into sending the typed master password as a legacy login. So
+  the normal login screen never does a legacy login. It only happens from the explicit
+  migration screen, with its field labelled as the old password, on a LAN address, and
+  never once this install has seen version 1 for the account. The cleanup commit
+  removes the path entirely.
 
 ### Rehearsal on dev
 
