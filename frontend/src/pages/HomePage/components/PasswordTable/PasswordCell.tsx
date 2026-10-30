@@ -15,7 +15,7 @@ type PasswordCellProps = {
   revealedId: string | null;
   isLoadingPassword?: boolean;
   onRevealToggle: (id: string) => void;
-  onCopyPassword: (password: string) => void;
+  onCopyPassword: (id: string) => void;
 };
 
 export const PasswordCell: React.FC<PasswordCellProps> = ({
@@ -53,7 +53,7 @@ export const PasswordCell: React.FC<PasswordCellProps> = ({
           <Tooltip title="Copy password">
             <IconButton
               size="small"
-              onClick={() => onCopyPassword(row.password)}
+              onClick={() => onCopyPassword(row.id)}
               disabled={isLoadingPassword}
             >
               <ContentCopy fontSize="small" />
