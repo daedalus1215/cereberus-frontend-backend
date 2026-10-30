@@ -105,7 +105,8 @@ POST /auth/recover/complete     { username, recoveryAuth, newAuthKey, salt, kdf,
     the other changes.
 - [ ] Limits: 100 changes per request, 256 KiB per ciphertext, 1 MiB per body
   (`app.useBodyParser`; Express's default is 100 KB and notes have no length limit
-  today). The client splits larger backlogs.
+  today). The client splits larger backlogs. `vault-core` refuses to encrypt anything
+  that would exceed the per-ciphertext limit, so the two have to change together.
 - [ ] Reject ciphertext that doesn't start with `cv1.`.
 - [ ] The global throttle of 100 a minute ([`app.module.ts:21`](../../backend/src/app.module.ts))
   stays. Clients back off on 429.
@@ -116,8 +117,10 @@ POST /auth/recover/complete     { username, recoveryAuth, newAuthKey, salt, kdf,
 
 - [ ] [`POST /users/register`](../../backend/src/users/app/controllers/users.controller.ts)
   takes the fields above and creates `encryption_version = 1` accounts. The auth
-  key is validated as a 32-byte base64 string; password length rules
+  key is validated as 43 characters of base64url; password length rules
   (`update-user-password.transaction.script.ts:7`) no longer apply on the server.
+  New accounts' `kdf` must be within `vault-core`'s limits, since clients refuse
+  anything outside them.
 - [ ] `PUT /users/master-password`: checks the current auth key, then replaces the
   hash, salt, parameters and wrapped key together, in one transaction.
 - [ ] `POST /auth/recover/*`, throttled at 5 a minute like login. `recoveryAuth`
