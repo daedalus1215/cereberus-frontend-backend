@@ -21,8 +21,8 @@ server, and syncs when it can. Android can fill passwords into other apps.
 
 | # | Spec | Depends on | Status |
 |---|------|-----------|--------|
-| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | Code done, including the copy fix. Waiting on you: commit, secrets, PR, phone checks |
-| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Spec 0 (for the Android spikes) | Not started |
+| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | Committed on `android`, not pushed. Waiting on you: secrets, PR, phone checks, merge, tag |
+| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | Commits 1 and 2 done. Commit 3, the spikes and the review are left |
 | 2 | [Backend: encrypted vault API](./spec-2-backend-vault-api.md) | Spec 1 | Not started |
 | 3 | [Clients: encrypt on the device](./spec-3-clients.md) | Specs 1, 2 | Not started |
 | 4 | [Migrating the real vault](./spec-4-migration.md) | Spec 3 | Not started |
@@ -33,10 +33,10 @@ server, and syncs when it can. Android can fill passwords into other apps.
 The plan's four steps map on like this: client-side encryption is Specs 1–4,
 the on-device copy is Spec 5, offline edits are Spec 6, autofill is Spec 7.
 
-**Last stopped:** 2026-10-30. Spec 0's copy fix is finished and verified, and the
-installed desktop app includes it. Everything is still uncommitted on `main`. Next
-are Spec 0's **(you)** steps; Spec 1's commits 1 and 2 don't depend on them, but its
-Android spikes do.
+**Last stopped:** 2026-10-30. Spec 1's commits 1 and 2 are finished and verified, but
+not committed. Next for Claude: Spec 1's Commit 3 (WebAssembly), which needs
+`rustup target add wasm32-unknown-unknown`. Next for you: Spec 0's steps, because the
+Android spikes can't run until the signing secrets are set and a PR is open.
 
 ## How to pick this up
 
