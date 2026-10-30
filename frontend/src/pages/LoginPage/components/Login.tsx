@@ -1,6 +1,10 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
+import Button from "@mui/material/Button";
 import { Logo } from "../../../components/Logo/Logo";
+import { isTauri } from "../../../tauri/api-config";
+import { openConnectionSettings } from "../../../tauri/connection-settings";
 import styles from "./Login.module.css";
 
 interface LoginProps {
@@ -23,8 +27,16 @@ export function Login({ onLogin }: LoginProps) {
       if (!success) {
         setError("Invalid credentials");
       }
-    } catch {
-      setError("An error occurred during login");
+    } catch (err) {
+      if (axios.isAxiosError(err) && !err.response) {
+        setError(
+          isTauri()
+            ? "Couldn't reach Cereberus. Check your connection, or the server settings below."
+            : "Couldn't reach Cereberus. Check your connection and try again.",
+        );
+      } else {
+        setError("An error occurred during login");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -71,6 +83,15 @@ export function Login({ onLogin }: LoginProps) {
       <div className={styles.registerLink}>
         Don't have an account? <Link to="/register">Register here</Link>
       </div>
+      {isTauri() && (
+        <Button
+          size="small"
+          onClick={() => openConnectionSettings()}
+          sx={{ display: "block", mx: "auto", mt: 1, textTransform: "none" }}
+        >
+          Server settings
+        </Button>
+      )}
     </div>
   );
 }
