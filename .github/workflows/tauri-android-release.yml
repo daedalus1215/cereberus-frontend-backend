@@ -1,0 +1,160 @@
+name: Android (Tauri) release
+
+# Pushing a tag like v0.2.0 builds the release APK and publishes it as a
+# GitHub Release. Run workflow builds one from any branch without publishing
+# it; the APK is the run's artifact.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+# Never cancel a release halfway; a second run for the same ref waits.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write # to publish the GitHub Release
+
+env:
+  NDK_VERSION: 27.3.13750724
+  KEY_ALIAS: cereberus-release
+  # The release key's certificate. Android installs an update only when it's
+  # signed with the same key as the installed app, so a release signed with
+  # any other key would mean uninstalling, and losing what's stored on the
+  # phone. The build fails rather than publish one.
+  RELEASE_CERT_SHA256: fc6c74e1ee3650c662c2a3d944d7138d83f3cb876a823b94ffc27568c931fa63
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      # The tag names the version (v0.2.0 is 0.2.0); a run started by hand
+      # builds the version in tauri.conf.json. This runs first so a bad tag
+      # fails in seconds.
+      - name: Work out the version
+        id: version
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          fi
+          if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::'$version' isn't a version like 1.2.3. Release tags look like v1.2.3."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # app/build.gradle.kts signs release builds with the key named in
+      # keystore.properties. Both files are gitignored.
+      - name: Restore the release signing key
+        env:
+          RELEASE_KEYSTORE: ${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$RELEASE_KEYSTORE" ] || [ -z "$RELEASE_KEYSTORE_PASSWORD" ]; then
+            echo "::error::Signing a release needs the ANDROID_RELEASE_KEYSTORE_BASE64 and ANDROID_RELEASE_KEYSTORE_PASSWORD secrets."
+            exit 1
+          fi
+          cd src-tauri/gen/android
+          echo "$RELEASE_KEYSTORE" | base64 -d > release.keystore
+          printf 'storeFile=release.keystore\nkeyAlias=%s\npassword=%s\n' \
+            "$KEY_ALIAS" "$RELEASE_KEYSTORE_PASSWORD" > keystore.properties
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      # The default package list includes "tools", which Google has removed,
+      # so name the packages explicitly. Gradle fetches the platform and
+      # build tools it needs on its own.
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: ndk;${{ env.NDK_VERSION }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: frontend/src-tauri -> target
+
+      - run: npm ci
+
+      # Optimized, minified, and not debuggable, so nothing over USB (run-as,
+      # the WebView inspector) can read the token the app stores. arm64
+      # covers current phones. The run number is the versionCode, so every
+      # release installs as an update of the one before. The
+      # ANDROID_SERVER_URL repository variable prefills the server address on
+      # the first-launch screen.
+      - name: Build the release APK
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          VITE_DEFAULT_SERVER_URL: ${{ vars.ANDROID_SERVER_URL }}
+        run: |
+          export NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION"
+          npx tauri android build --apk --target aarch64 --config \
+            "{\"version\":\"$VERSION\",\"bundle\":{\"android\":{\"versionCode\":$GITHUB_RUN_NUMBER}}}"
+
+      # Check what was built before it goes anywhere: signed with the release
+      # key (an unsigned build has no certificate), not debuggable, and
+      # carrying the version worked out above.
+      - name: Check the APK
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          apks=(src-tauri/gen/android/app/build/outputs/apk/*/release/*.apk)
+          if [ ${#apks[@]} -ne 1 ] || [ ! -f "${apks[0]}" ]; then
+            echo "::error::Expected one release APK, found: ${apks[*]}"
+            exit 1
+          fi
+          apk=${apks[0]}
+          build_tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+          if ! "$build_tools/apksigner" verify --print-certs "$apk" \
+            | grep -q "SHA-256 digest: $RELEASE_CERT_SHA256"; then
+            echo "::error::$apk isn't signed with the release key."
+            exit 1
+          fi
+          badging=$("$build_tools/aapt2" dump badging "$apk")
+          if ! echo "$badging" | grep -q \
+            "^package: name='com.cereberus.app' versionCode='$GITHUB_RUN_NUMBER' versionName='$VERSION'"; then
+            echo "::error::$apk doesn't have the expected package and version:"
+            echo "$badging" | head -n 1
+            exit 1
+          fi
+          if echo "$badging" | grep -q '^application-debuggable'; then
+            echo "::error::$apk is debuggable."
+            exit 1
+          fi
+          mkdir -p ../release
+          cp "$apk" "../release/cereberus-$VERSION.apk"
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: cereberus-android-${{ steps.version.outputs.version }}
+          path: release/*.apk
+          if-no-files-found: error
+
+      - name: Publish the GitHub Release
+        if: github.ref_type == 'tag'
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "release/cereberus-$VERSION.apk" \
+            --title "Cereberus $VERSION" --generate-notes
