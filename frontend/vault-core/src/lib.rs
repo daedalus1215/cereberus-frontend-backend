@@ -13,9 +13,11 @@
 //! vault key   encrypts each entry
 //! ```
 //!
-//! Key types have no `Debug`, `Clone` or `Serialize`, and they and [`Entry`] wipe
-//! themselves on drop. That wiping is best effort: moves can leave copies on the
-//! stack, and an allocator's earlier buffers aren't reachable from here.
+//! Key types have no `Debug`, `Clone` or `Serialize`. Each lives at one heap address
+//! and is wiped on drop, and the stack is scrubbed after every operation that handles
+//! one, so a locked vault leaves no keys behind. Decrypted text gets less: [`Entry`]
+//! wipes itself, but copies made while parsing it can stay in freed memory, and the
+//! webview's copies can't be reached at all.
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
@@ -23,6 +25,7 @@ mod entry;
 mod envelope;
 mod error;
 mod kdf;
+mod secret;
 mod vault;
 #[cfg(test)]
 mod vectors;
