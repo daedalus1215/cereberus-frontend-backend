@@ -8,7 +8,7 @@ use data_encoding::BASE64URL_NOPAD;
 use zeroize::Zeroizing;
 
 use crate::Error;
-use crate::kdf::KEY_LEN;
+use crate::secret::{KEY_LEN, burn_stack};
 
 const PREFIX: &str = "cv1.";
 pub(crate) const NONCE_LEN: usize = 24;
@@ -22,6 +22,18 @@ pub(crate) fn seal(key: &[u8; KEY_LEN], aad: &[u8], plaintext: &[u8]) -> Result<
 
 /// Only [`seal`] should choose a nonce outside of tests.
 pub(crate) fn seal_with_nonce(
+    key: &[u8; KEY_LEN],
+    nonce: &[u8; NONCE_LEN],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<String, Error> {
+    let sealed = run_seal(key, nonce, aad, plaintext);
+    burn_stack();
+    sealed
+}
+
+#[inline(never)]
+fn run_seal(
     key: &[u8; KEY_LEN],
     nonce: &[u8; NONCE_LEN],
     aad: &[u8],
@@ -49,6 +61,13 @@ pub(crate) fn open(
     aad: &[u8],
     text: &str,
 ) -> Result<Zeroizing<Vec<u8>>, Error> {
+    let opened = run_open(key, aad, text);
+    burn_stack();
+    opened
+}
+
+#[inline(never)]
+fn run_open(key: &[u8; KEY_LEN], aad: &[u8], text: &str) -> Result<Zeroizing<Vec<u8>>, Error> {
     let encoded = text.strip_prefix(PREFIX).ok_or(Error::UnsupportedFormat)?;
     let raw = BASE64URL_NOPAD
         .decode(encoded.as_bytes())
