@@ -8,7 +8,8 @@ use serde_json::Value;
 use crate::Error;
 use crate::entry::{Entry, decrypt_entry, encrypt_entry_with_nonce};
 use crate::envelope::{NONCE_LEN, seal_with_nonce};
-use crate::kdf::{KEY_LEN, KdfParams, Kek, derive_keys};
+use crate::kdf::{KdfParams, Kek, derive_keys};
+use crate::secret::{KEY_LEN, KeyBytes};
 use crate::vault::{
     AAD_RECOVERY_VAULT_KEY, AAD_VAULT_KEY, RecoveryKey, VaultKey, unwrap_vault_key,
     unwrap_with_recovery,
@@ -28,6 +29,10 @@ fn key_bytes(value: &Value) -> [u8; KEY_LEN] {
         .unwrap()
         .try_into()
         .unwrap()
+}
+
+fn key(value: &Value) -> KeyBytes {
+    KeyBytes::from_slice(&key_bytes(value)).unwrap()
 }
 
 fn nonce_bytes(value: &Value) -> [u8; NONCE_LEN] {
@@ -52,7 +57,14 @@ fn key_derivation_matches() {
             text(&case["authKey"]),
             "{name}"
         );
-        assert_eq!(keys.kek.0, key_bytes(&case["kek"]), "{name}");
+        assert_eq!(keys.kek.0.as_array(), &key_bytes(&case["kek"]), "{name}");
+
+        let unwrapped = unwrap_vault_key(&keys.kek, text(&case["wrappedVaultKey"])).unwrap();
+        assert_eq!(
+            unwrapped.0.as_array(),
+            &key_bytes(&vectors["entries"]["vaultKey"]),
+            "{name}"
+        );
     }
 }
 
@@ -93,11 +105,11 @@ fn parameters_outside_the_range_are_refused() {
 fn wrapping_the_vault_key_matches() {
     let vectors = vectors();
     let wrap = &vectors["wrap"];
-    let kek = Kek(key_bytes(&wrap["kek"]));
+    let kek = Kek(key(&wrap["kek"]));
     let vault_key = key_bytes(&wrap["vaultKey"]);
 
     let sealed = seal_with_nonce(
-        &kek.0,
+        kek.0.as_array(),
         &nonce_bytes(&wrap["nonce"]),
         AAD_VAULT_KEY,
         &vault_key,
@@ -106,7 +118,7 @@ fn wrapping_the_vault_key_matches() {
     assert_eq!(sealed, text(&wrap["wrappedVaultKey"]));
 
     let unwrapped = unwrap_vault_key(&kek, text(&wrap["wrappedVaultKey"])).unwrap();
-    assert_eq!(unwrapped.0, vault_key);
+    assert_eq!(unwrapped.0.as_array(), &vault_key);
 }
 
 #[test]
@@ -125,7 +137,7 @@ fn the_recovery_key_matches() {
     );
 
     let sealed = seal_with_nonce(
-        &key.kek(),
+        key.kek().as_array(),
         &nonce_bytes(&recovery["nonce"]),
         AAD_RECOVERY_VAULT_KEY,
         &vault_key,
@@ -134,14 +146,14 @@ fn the_recovery_key_matches() {
     assert_eq!(sealed, text(&recovery["wrappedVaultKeyRecovery"]));
 
     let unwrapped = unwrap_with_recovery(&key, text(&recovery["wrappedVaultKeyRecovery"])).unwrap();
-    assert_eq!(unwrapped.0, vault_key);
+    assert_eq!(unwrapped.0.as_array(), &vault_key);
 }
 
 #[test]
 fn entries_match_in_both_directions() {
     let vectors = vectors();
     let entries = &vectors["entries"];
-    let vault_key = VaultKey(key_bytes(&entries["vaultKey"]));
+    let vault_key = VaultKey(key(&entries["vaultKey"]));
     let nonce = nonce_bytes(&entries["nonce"]);
     let cases = entries["cases"].as_array().unwrap();
     assert!(cases.len() >= 6);
@@ -168,7 +180,7 @@ fn entries_match_in_both_directions() {
 #[test]
 fn what_must_fail_fails_for_the_right_reason() {
     let vectors = vectors();
-    let vault_key = VaultKey(key_bytes(&vectors["entries"]["vaultKey"]));
+    let vault_key = VaultKey(key(&vectors["entries"]["vaultKey"]));
     let cases = vectors["mustFail"].as_array().unwrap();
     assert!(cases.len() >= 11);
 
