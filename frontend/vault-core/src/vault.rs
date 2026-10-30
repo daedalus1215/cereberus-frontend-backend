@@ -1,10 +1,11 @@
 use data_encoding::{BASE64URL_NOPAD, Encoding, Specification};
 use sha2::{Digest, Sha256};
-use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
+use zeroize::Zeroizing;
 
 use crate::Error;
 use crate::envelope::{open, seal};
-use crate::kdf::{KEY_LEN, Kek, derive_subkey};
+use crate::kdf::{Kek, derive_subkey};
+use crate::secret::{KEY_LEN, KeyBytes, burn_stack};
 
 pub(crate) const AAD_VAULT_KEY: &[u8] = b"cereberus/v1/vault-key";
 pub(crate) const AAD_RECOVERY_VAULT_KEY: &[u8] = b"cereberus/v1/recovery-vault-key";
@@ -17,20 +18,18 @@ const RECOVERY_GROUP_LEN: usize = 5;
 
 /// Encrypts every entry. Made once at setup; a new master password only rewraps it,
 /// so entries are never re-encrypted.
-#[derive(Zeroize, ZeroizeOnDrop)]
-pub struct VaultKey(pub(crate) [u8; KEY_LEN]);
+pub struct VaultKey(pub(crate) KeyBytes);
 
 /// The way back in after forgetting the master password. Shown once, for the user to
 /// print; nothing stores it.
-#[derive(Zeroize, ZeroizeOnDrop)]
-pub struct RecoveryKey([u8; KEY_LEN]);
+pub struct RecoveryKey(KeyBytes);
 
 impl RecoveryKey {
     /// The form the user prints: Crockford base32 in groups of 5, ending in a
     /// checksum, like `7KQ2M-...`.
     pub fn to_display(&self) -> Zeroizing<String> {
         let mut payload = Zeroizing::new([0u8; KEY_LEN + RECOVERY_CHECK_LEN]);
-        payload[..KEY_LEN].copy_from_slice(&self.0);
+        payload[..KEY_LEN].copy_from_slice(self.0.as_array());
         payload[KEY_LEN..].copy_from_slice(&recovery_check(&self.0));
         let encoded = Zeroizing::new(crockford().encode(payload.as_slice()));
 
@@ -59,9 +58,9 @@ impl RecoveryKey {
         if payload.len() != KEY_LEN + RECOVERY_CHECK_LEN {
             return Err(Error::InvalidRecoveryKey);
         }
-        let mut key = [0u8; KEY_LEN];
-        key.copy_from_slice(&payload[..KEY_LEN]);
-        let key = RecoveryKey(key);
+        let key = KeyBytes::from_slice(&payload[..KEY_LEN])
+            .map(RecoveryKey)
+            .ok_or(Error::InvalidRecoveryKey)?;
         if payload[KEY_LEN..] != recovery_check(&key.0) {
             return Err(Error::InvalidRecoveryKey);
         }
@@ -72,23 +71,30 @@ impl RecoveryKey {
     /// server stores a hash of it.
     pub fn recovery_auth(&self) -> Zeroizing<String> {
         let auth = derive_subkey(&self.0, INFO_RECOVERY_AUTH);
-        Zeroizing::new(BASE64URL_NOPAD.encode(auth.as_slice()))
+        Zeroizing::new(BASE64URL_NOPAD.encode(auth.as_array()))
     }
 
-    pub(crate) fn kek(&self) -> Zeroizing<[u8; KEY_LEN]> {
+    pub(crate) fn kek(&self) -> KeyBytes {
         derive_subkey(&self.0, INFO_RECOVERY_KEK)
     }
 
     #[cfg(test)]
     pub(crate) fn bytes(&self) -> &[u8; KEY_LEN] {
-        &self.0
+        self.0.as_array()
     }
 }
 
-fn recovery_check(key: &[u8; KEY_LEN]) -> [u8; RECOVERY_CHECK_LEN] {
+fn recovery_check(key: &KeyBytes) -> [u8; RECOVERY_CHECK_LEN] {
+    let check = run_recovery_check(key);
+    burn_stack();
+    check
+}
+
+#[inline(never)]
+fn run_recovery_check(key: &KeyBytes) -> [u8; RECOVERY_CHECK_LEN] {
     let digest = Sha256::new()
         .chain_update(RECOVERY_CHECK_PREFIX)
-        .chain_update(key)
+        .chain_update(key.as_array())
         .finalize();
     [digest[0], digest[1]]
 }
@@ -125,9 +131,7 @@ pub struct NewVault {
 /// Makes a vault key and its recovery key. Together, so a vault can't exist without
 /// a way back in.
 pub fn create_vault(kek: &Kek) -> Result<NewVault, Error> {
-    let mut bytes = Zeroizing::new([0u8; KEY_LEN]);
-    getrandom::fill(bytes.as_mut_slice()).map_err(|_| Error::RandomUnavailable)?;
-    let vault_key = VaultKey(*bytes);
+    let vault_key = VaultKey(KeyBytes::random()?);
 
     Ok(NewVault {
         wrapped_vault_key: rewrap_vault_key(kek, &vault_key)?,
@@ -138,15 +142,13 @@ pub fn create_vault(kek: &Kek) -> Result<NewVault, Error> {
 
 /// Makes a new recovery key for an existing vault, such as after the old one is lost.
 pub fn create_recovery_key(vault_key: &VaultKey) -> Result<NewRecovery, Error> {
-    let mut bytes = Zeroizing::new([0u8; KEY_LEN]);
-    getrandom::fill(bytes.as_mut_slice()).map_err(|_| Error::RandomUnavailable)?;
-    let recovery_key = RecoveryKey(*bytes);
+    let recovery_key = RecoveryKey(KeyBytes::random()?);
 
     Ok(NewRecovery {
         wrapped_vault_key_recovery: seal(
-            &recovery_key.kek(),
+            recovery_key.kek().as_array(),
             AAD_RECOVERY_VAULT_KEY,
-            &vault_key.0,
+            vault_key.0.as_array(),
         )?,
         recovery_auth: recovery_key.recovery_auth(),
         recovery_key,
@@ -156,22 +158,27 @@ pub fn create_recovery_key(vault_key: &VaultKey) -> Result<NewRecovery, Error> {
 /// Wraps the vault key for a KEK. Changing the master password is this and nothing
 /// more.
 pub fn rewrap_vault_key(kek: &Kek, vault_key: &VaultKey) -> Result<String, Error> {
-    seal(&kek.0, AAD_VAULT_KEY, &vault_key.0)
+    seal(kek.0.as_array(), AAD_VAULT_KEY, vault_key.0.as_array())
 }
 
 /// Unlocks with the master password's KEK. A wrong password fails here.
 pub fn unwrap_vault_key(kek: &Kek, wrapped: &str) -> Result<VaultKey, Error> {
-    vault_key_from(&open(&kek.0, AAD_VAULT_KEY, wrapped)?)
+    vault_key_from(&open(kek.0.as_array(), AAD_VAULT_KEY, wrapped)?)
 }
 
 /// Unlocks with the recovery key, after a forgotten master password.
 pub fn unwrap_with_recovery(recovery_key: &RecoveryKey, wrapped: &str) -> Result<VaultKey, Error> {
-    vault_key_from(&open(&recovery_key.kek(), AAD_RECOVERY_VAULT_KEY, wrapped)?)
+    vault_key_from(&open(
+        recovery_key.kek().as_array(),
+        AAD_RECOVERY_VAULT_KEY,
+        wrapped,
+    )?)
 }
 
 fn vault_key_from(bytes: &[u8]) -> Result<VaultKey, Error> {
-    let bytes: [u8; KEY_LEN] = bytes.try_into().map_err(|_| Error::MalformedCiphertext)?;
-    Ok(VaultKey(bytes))
+    KeyBytes::from_slice(bytes)
+        .map(VaultKey)
+        .ok_or(Error::MalformedCiphertext)
 }
 
 #[cfg(test)]
@@ -186,14 +193,14 @@ mod tests {
     assert_not_impl_any!(NewRecovery: std::fmt::Debug, Clone, Serialize);
 
     fn kek(byte: u8) -> Kek {
-        Kek([byte; KEY_LEN])
+        Kek(KeyBytes::filled(byte))
     }
 
     #[test]
     fn the_master_password_unlocks_a_new_vault() {
         let vault = create_vault(&kek(1)).unwrap();
         let unwrapped = unwrap_vault_key(&kek(1), &vault.wrapped_vault_key).unwrap();
-        assert_eq!(unwrapped.0, vault.vault_key.0);
+        assert_eq!(unwrapped.0.as_array(), vault.vault_key.0.as_array());
     }
 
     #[test]
@@ -209,8 +216,11 @@ mod tests {
     fn vaults_get_different_keys() {
         let a = create_vault(&kek(1)).unwrap();
         let b = create_vault(&kek(1)).unwrap();
-        assert_ne!(a.vault_key.0, b.vault_key.0);
-        assert_ne!(a.recovery.recovery_key.0, b.recovery.recovery_key.0);
+        assert_ne!(a.vault_key.0.as_array(), b.vault_key.0.as_array());
+        assert_ne!(
+            a.recovery.recovery_key.0.as_array(),
+            b.recovery.recovery_key.0.as_array()
+        );
     }
 
     #[test]
@@ -219,8 +229,8 @@ mod tests {
         let rewrapped = rewrap_vault_key(&kek(2), &vault.vault_key).unwrap();
 
         assert_eq!(
-            unwrap_vault_key(&kek(2), &rewrapped).unwrap().0,
-            vault.vault_key.0
+            unwrap_vault_key(&kek(2), &rewrapped).unwrap().0.as_array(),
+            vault.vault_key.0.as_array()
         );
         assert_eq!(
             unwrap_vault_key(&kek(1), &rewrapped).err(),
@@ -236,7 +246,7 @@ mod tests {
             &vault.recovery.wrapped_vault_key_recovery,
         )
         .unwrap();
-        assert_eq!(unwrapped.0, vault.vault_key.0);
+        assert_eq!(unwrapped.0.as_array(), vault.vault_key.0.as_array());
     }
 
     #[test]
@@ -257,7 +267,7 @@ mod tests {
     fn the_two_wraps_cant_be_swapped() {
         let vault = create_vault(&kek(1)).unwrap();
         // Wrapped under the same key material, so only the aad tells them apart.
-        let recovery_kek = Kek(*vault.recovery.recovery_key.kek());
+        let recovery_kek = Kek(vault.recovery.recovery_key.kek());
         assert_eq!(
             unwrap_vault_key(&recovery_kek, &vault.recovery.wrapped_vault_key_recovery).err(),
             Some(Error::DecryptionFailed)
@@ -268,28 +278,35 @@ mod tests {
     fn a_replacement_recovery_key_works_and_is_different() {
         let vault = create_vault(&kek(1)).unwrap();
         let replacement = create_recovery_key(&vault.vault_key).unwrap();
-        assert_ne!(replacement.recovery_key.0, vault.recovery.recovery_key.0);
+        assert_ne!(
+            replacement.recovery_key.0.as_array(),
+            vault.recovery.recovery_key.0.as_array()
+        );
         assert_eq!(
             unwrap_with_recovery(
                 &replacement.recovery_key,
                 &replacement.wrapped_vault_key_recovery
             )
             .unwrap()
-            .0,
-            vault.vault_key.0
+            .0
+            .as_array(),
+            vault.vault_key.0.as_array()
         );
     }
 
     #[test]
     fn the_recovery_key_survives_being_printed() {
-        let key = RecoveryKey([9; KEY_LEN]);
+        let key = RecoveryKey(KeyBytes::filled(9));
         let display = key.to_display();
-        assert_eq!(RecoveryKey::parse(&display).unwrap().0, key.0);
+        assert_eq!(
+            RecoveryKey::parse(&display).unwrap().0.as_array(),
+            key.0.as_array()
+        );
     }
 
     #[test]
     fn the_recovery_key_is_readable() {
-        let display = RecoveryKey([9; KEY_LEN]).to_display();
+        let display = RecoveryKey(KeyBytes::filled(9)).to_display();
         let groups: Vec<&str> = display.split('-').collect();
         assert_eq!(groups.len(), 11);
         assert!(groups.iter().all(|group| group.len() == 5));
@@ -302,18 +319,21 @@ mod tests {
 
     #[test]
     fn sloppy_typing_is_forgiven() {
-        let key = RecoveryKey([0; KEY_LEN]);
+        let key = RecoveryKey(KeyBytes::filled(0));
         let display = key.to_display();
         let sloppy = format!(
             " {} \n",
             display.to_lowercase().replace('-', " ").replace('0', "o")
         );
-        assert_eq!(RecoveryKey::parse(&sloppy).unwrap().0, key.0);
+        assert_eq!(
+            RecoveryKey::parse(&sloppy).unwrap().0.as_array(),
+            key.0.as_array()
+        );
     }
 
     #[test]
     fn a_typo_is_caught_before_the_server_is_asked() {
-        let display = RecoveryKey([9; KEY_LEN]).to_display();
+        let display = RecoveryKey(KeyBytes::filled(9)).to_display();
         let first = display.chars().next().unwrap();
         let wrong = if first == 'A' { 'B' } else { 'A' };
         let typo = format!("{wrong}{}", &display[1..]);
@@ -344,13 +364,13 @@ mod tests {
 
     #[test]
     fn recovery_auth_is_stable_and_isnt_the_key() {
-        let key = RecoveryKey([9; KEY_LEN]);
+        let key = RecoveryKey(KeyBytes::filled(9));
         assert_eq!(*key.recovery_auth(), *key.recovery_auth());
         assert_eq!(key.recovery_auth().len(), 43);
         assert!(!key.to_display().contains(key.recovery_auth().as_str()));
         assert_ne!(
             *key.recovery_auth(),
-            *RecoveryKey([8; KEY_LEN]).recovery_auth()
+            *RecoveryKey(KeyBytes::filled(8)).recovery_auth()
         );
     }
 
