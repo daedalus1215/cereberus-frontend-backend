@@ -1,0 +1,38 @@
+name: vault-core
+
+# The crate's tests include vectors from a second implementation of the format, which
+# is what catches a change that would strand vaults already written.
+on:
+  pull_request:
+    paths:
+      - frontend/vault-core/**
+      - .github/workflows/vault-core.yml
+  push:
+    branches: [main]
+    paths:
+      - frontend/vault-core/**
+      - .github/workflows/vault-core.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend/vault-core
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: frontend/vault-core -> target
+
+      - run: cargo clippy --all-targets --locked
+
+      - run: cargo test --locked
