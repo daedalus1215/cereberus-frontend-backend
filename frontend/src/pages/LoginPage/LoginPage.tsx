@@ -9,18 +9,12 @@ export const LoginPage: React.FC = () => {
   const { login, isAuthenticated } = useAuth();
 
   const handleLogin = async (username: string, password: string) => {
-    try {
-      const success = await login(username, password);
-      if (success) {
-        // Only navigate after successful login
-        navigate("/", { replace: true });
-      }
-      return success;
-    } catch (error) {
-      console.error(error)
-      console.error("Login error: Authentication failed");
-      return false;
+    const success = await login(username, password);
+    if (success) {
+      // Only navigate after successful login
+      navigate("/", { replace: true });
     }
+    return success;
   };
 
   React.useEffect(() => {
