@@ -6,6 +6,12 @@ import { AuthProvider } from "./auth/AuthContext.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { TauriConfigGate } from "./tauri/TauriConfigGate.tsx";
+import { applyMotionSetting } from "./tauri/motion.ts";
+
+// The Tauri webviews blink through animations, so disable them before the
+// first render (see src/tauri/motion.ts). No-op on the web.
+applyMotionSetting();
 
 const queryClient = new QueryClient();
 const theme = createTheme({
@@ -44,11 +50,14 @@ createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </QueryClientProvider>
+      {/* The Tauri app asks for its server here before anything calls it. */}
+      <TauriConfigGate>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </QueryClientProvider>
+      </TauriConfigGate>
     </ThemeProvider>
   </React.StrictMode>,
 );
