@@ -41,6 +41,9 @@ function AppRoutes() {
         id={ROUTES.REGISTER_PAGE}
       />
       <Route path="/" element={<LandingPage />} id={ROUTES.LANDING_PAGE} />
+      {/* Signing out from /settings lands here. The Tauri app has no address
+          bar to get away from a blank page with. */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
