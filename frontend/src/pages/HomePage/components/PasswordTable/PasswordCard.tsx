@@ -16,6 +16,7 @@ import {
   ContentCopy,
   Link as LinkIcon,
 } from "@mui/icons-material";
+import { openUrl } from "@/tauri/open-url";
 import type { PasswordEntryResponse } from "./types";
 
 type PasswordCardProps = {
@@ -23,7 +24,7 @@ type PasswordCardProps = {
   revealedId: string | null;
   isLoadingPassword?: boolean;
   onRevealToggle: (id: string) => void;
-  onCopyPassword: (password: string) => void;
+  onCopyPassword: (id: string) => void;
   onMenuClick: (event: React.MouseEvent<HTMLElement>, id: string) => void;
   onCardClick?: (id: string) => void;
 };
@@ -124,7 +125,7 @@ export const PasswordCard: React.FC<PasswordCardProps> = ({
               <Tooltip title="Copy password">
                 <IconButton
                   size="small"
-                  onClick={() => onCopyPassword(password.password)}
+                  onClick={() => onCopyPassword(password.id)}
                   disabled={isLoadingPassword}
                 >
                   <ContentCopy fontSize="small" />
@@ -164,7 +165,7 @@ export const PasswordCard: React.FC<PasswordCardProps> = ({
                   textDecoration: "underline",
                   cursor: "pointer",
                 }}
-                onClick={() => window.open(password.url, "_blank")}
+                onClick={() => void openUrl(password.url)}
               >
                 {password.url}
               </Typography>
