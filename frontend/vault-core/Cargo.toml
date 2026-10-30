@@ -1,0 +1,29 @@
+[package]
+name = "vault-core"
+version = "0.1.0"
+description = "Cereberus vault encryption, shared by the apps and the web client"
+authors = ["daedalus1215"]
+license = ""
+repository = "https://github.com/daedalus1215/cereberus-frontend-backend"
+edition = "2024"
+rust-version = "1.90"
+publish = false
+
+[dependencies]
+argon2 = { version = "0.6", default-features = false, features = ["alloc", "zeroize"] }
+chacha20poly1305 = { version = "0.11", default-features = false, features = ["alloc", "zeroize"] }
+data-encoding = "2"
+getrandom = "0.4"
+hkdf = "0.13"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = { version = "0.11", default-features = false }
+unicode-normalization = "0.1"
+zeroize = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+static_assertions = "1"
+
+# Argon2id at real parameters takes a minute per call without this.
+[profile.dev.package."*"]
+opt-level = 3
