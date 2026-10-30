@@ -93,18 +93,22 @@ const crockford = (bytes) => {
 };
 
 const SALT = counting(16);
+const VAULT_KEY = counting(32, 0x40);
+const NONCE = counting(24, 0x80);
 const DEFAULTS = { alg: "argon2id", m: 65536, t: 3, p: 1 };
 const FLOOR = { alg: "argon2id", m: 19456, t: 2, p: 1 };
 
 const kdfCase = (name, password, params = DEFAULTS) => {
   const master = argon2id(password, SALT, params);
+  const kek = hkdf(master, "cereberus/v1/kek");
   return {
     name,
     password,
     salt: b64(SALT),
     params,
     authKey: b64(hkdf(master, "cereberus/v1/auth")),
-    kek: b64(hkdf(master, "cereberus/v1/kek")),
+    kek: b64(kek),
+    wrappedVaultKey: seal(kek, NONCE, "cereberus/v1/vault-key", VAULT_KEY),
   };
 };
 
@@ -120,8 +124,6 @@ const kdf = [
 ];
 
 const KEK = counting(32, 0x20);
-const VAULT_KEY = counting(32, 0x40);
-const NONCE = counting(24, 0x80);
 
 const wrap = {
   kek: b64(KEK),
