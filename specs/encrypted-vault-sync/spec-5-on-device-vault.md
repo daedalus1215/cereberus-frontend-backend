@@ -83,6 +83,8 @@ in to sync.
   `biometric:allow-biometric-cipher`. Called from Rust, using what spike S2 showed.
 - [ ] Opt-in, enabled in Settings after a master-password unlock. Device PIN isn't
   accepted (`allowDeviceCredential: false`).
+- [ ] Offered on Android 11 (API 30) and up only. Below that the plugin doesn't restrict
+  which authenticators count (Spec 1, S2), so those phones stay on the master password.
 - [ ] After a new fingerprint is added, decryption fails. Fall back to the master
   password, and offer to re-enable it.
 - [ ] Linux desktop stays on the master password; the plugin's cipher is Android-only.
