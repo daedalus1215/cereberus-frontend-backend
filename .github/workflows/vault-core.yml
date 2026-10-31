@@ -6,18 +6,20 @@ on:
   pull_request:
     paths:
       - frontend/vault-core/**
+      - frontend/vault-core-wasm/**
       - .github/workflows/vault-core.yml
   push:
     branches: [main]
     paths:
       - frontend/vault-core/**
+      - frontend/vault-core-wasm/**
       - .github/workflows/vault-core.yml
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  native:
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -36,3 +38,35 @@ jobs:
       - run: cargo clippy --all-targets --locked
 
       - run: cargo test --locked
+
+  # The same vectors through the JavaScript interface, plus a search of WebAssembly
+  # memory for anything left behind.
+  webassembly:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend/vault-core-wasm
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: frontend/vault-core-wasm -> target
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      # Has to be the version Cargo.toml pins.
+      - run: cargo install wasm-bindgen-cli --locked --version "$(sed -n 's/^wasm-bindgen = "=\(.*\)"$/\1/p' Cargo.toml)"
+
+      - run: cargo clippy --locked --target wasm32-unknown-unknown
+
+      - run: ./build.sh
+
+      - run: node --test tests/*.test.mjs
