@@ -54,6 +54,14 @@ interface VaultClient {
   Cloudflare headers and access-denied handling keep working. Rust only ever sees
   ciphertext and keys.
 - [ ] Add the new commands to [`capabilities/default.json`](../../frontend/src-tauri/capabilities/default.json).
+- [ ] Use `vault-core-wasm`'s wiping allocator in the Tauri app too. Without it, what's
+  serialized for IPC, such as a shown recovery key or a revealed password, stays in freed
+  memory after locking. Native memory can't be searched the way WASM's can, so check the
+  cost and cover it with an allocator test like `vault-core/tests/wiping.rs`.
+- [ ] Optimise the crypto crates in debug builds, through `[profile.dev.package.*]` in
+  `src-tauri/Cargo.toml`. A profile in `vault-core`'s own manifest doesn't apply once
+  it's a dependency. Without this, every check from a debug APK waits 2.3 to 8.7 seconds
+  to derive keys on a Pixel 9a, against 0.13 to 0.7 seconds optimised.
 
 ### Commit 2 — `feat(frontend): the browser implementation`
 
@@ -69,7 +77,7 @@ interface VaultClient {
 - [ ] [`useAuth.ts`](../../frontend/src/auth/useAuth.ts) and
   [`Login.tsx`](../../frontend/src/pages/LoginPage/components/Login.tsx): prelogin,
   derive keys, log in, unwrap. The master password is never sent. Show progress,
-  since deriving takes a few seconds.
+  since deriving can take up to a second, and longer on older phones.
 - [ ] [`RegisterPage.tsx`](../../frontend/src/pages/RegisterPage/RegisterPage.tsx):
   minimum 12 characters, enforced here since the server can't. Then show the
   recovery key, and require typing part of it back before continuing.
@@ -104,7 +112,8 @@ interface VaultClient {
 
 - [ ] [`nginx.conf`](../../frontend/nginx.conf) has no CSP today (Helmet's in
   `main.ts` only covers API responses). Add `script-src 'self' 'wasm-unsafe-eval'`;
-  `style-src 'self' 'unsafe-inline'` is needed for MUI.
+  `style-src 'self' 'unsafe-inline'` is needed for MUI. Spec 1 confirmed the WASM build
+  loads under this `script-src`, and is blocked without `'wasm-unsafe-eval'`.
 - [ ] `tauri.conf.json` has `"csp": null`, as the siblings do. A script injected
   here could read an unlocked vault, so set a real policy. Check the IPC, the HTTP
   plugin and MUI all still work.
