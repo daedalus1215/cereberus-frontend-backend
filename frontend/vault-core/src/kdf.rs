@@ -102,7 +102,7 @@ pub fn new_salt() -> Result<String, Error> {
 }
 
 /// Runs Argon2id, then splits the result into the auth key and the KEK. Slow on
-/// purpose: seconds on a phone.
+/// purpose: up to about a second on a phone.
 pub fn derive_keys(
     master_password: &str,
     salt: &str,
@@ -121,10 +121,9 @@ pub fn derive_keys(
     // A phone and a laptop can type different bytes for the same text.
     let normalized = Zeroizing::new(master_password.nfkc().collect::<String>());
 
-    let master_key = run_argon2(normalized.as_bytes(), &salt, params);
-    burn_stack();
-    let master_key = master_key?;
+    let master_key = run_argon2(normalized.as_bytes(), &salt, params)?;
 
+    // Each of these also scrubs what Argon2 left on the stack.
     Ok(DerivedKeys {
         auth_key: AuthKey(derive_subkey(&master_key, INFO_AUTH)),
         kek: Kek(derive_subkey(&master_key, INFO_KEK)),
