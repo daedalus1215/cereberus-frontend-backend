@@ -21,8 +21,8 @@ server, and syncs when it can. Android can fill passwords into other apps.
 
 | # | Spec | Depends on | Status |
 |---|------|-----------|--------|
-| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | Committed on `android`, not pushed. Waiting on you: secrets, PR, phone checks, merge, tag |
-| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | Commits 1 and 2 done. Commit 3, the spikes and the review are left |
+| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | Pushed on `android`, no PR yet. Waiting on you: secrets, PR, phone checks, merge, tag |
+| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | All three commits and spike S3 done. Spikes S1 and S2 and the review are left |
 | 2 | [Backend: encrypted vault API](./spec-2-backend-vault-api.md) | Spec 1 | Not started |
 | 3 | [Clients: encrypt on the device](./spec-3-clients.md) | Specs 1, 2 | Not started |
 | 4 | [Migrating the real vault](./spec-4-migration.md) | Spec 3 | Not started |
@@ -33,10 +33,10 @@ server, and syncs when it can. Android can fill passwords into other apps.
 The plan's four steps map on like this: client-side encryption is Specs 1–4,
 the on-device copy is Spec 5, offline edits are Spec 6, autofill is Spec 7.
 
-**Last stopped:** 2026-10-30. Spec 1's commits 1 and 2 are finished and verified, but
-not committed. Next for Claude: Spec 1's Commit 3 (WebAssembly), which needs
-`rustup target add wasm32-unknown-unknown`. Next for you: Spec 0's steps, because the
-Android spikes can't run until the signing secrets are set and a PR is open.
+**Last stopped:** 2026-10-31. Spec 1's Commit 3 (WebAssembly) and spike S3 are finished and
+verified, but not committed. Blocked on you: committing, the signing secrets and a PR,
+because spikes S1 and S2 need an APK. Those are next, then the review gate, and only then
+can Spec 2 start. The format isn't frozen until that review is done.
 
 ## How to pick this up
 
@@ -104,6 +104,9 @@ Each has a default that applies unless you change it.
   install on the phone. Group Android checks together rather than running them
   one change at a time. `workflow_dispatch` builds any branch once the workflows
   are on `main`, which is why Spec 0 comes first.
+- **Some phone checks don't need an APK.** With the phone plugged in and USB debugging on,
+  a static `aarch64-unknown-linux-musl` build runs through `adb shell`, and `adb reverse`
+  serves a page to the phone's browser over USB. Spike S3 ran both ways.
 - **Desktop checks are local.** The earlier end-to-end rig was an Ubuntu 24.04
   container with Xvfb and xdotool, a throwaway Postgres, the real backend image
   and a stub imitating Cloudflare Access. It lived in a session scratchpad, so
