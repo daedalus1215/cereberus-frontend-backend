@@ -106,6 +106,8 @@ const kdfCase = (name, password, params = DEFAULTS) => {
     password,
     salt: b64(SALT),
     params,
+    // Nothing reads this back. It's what the memory search looks for.
+    masterKey: b64(master),
     authKey: b64(hkdf(master, "cereberus/v1/auth")),
     kek: b64(kek),
     wrappedVaultKey: seal(kek, NONCE, "cereberus/v1/vault-key", VAULT_KEY),
