@@ -233,8 +233,8 @@ vector and failure case also passes in real Chromium, under a CSP of `script-src
 the WASM build writes, the opposite direction from the vectors. Breaking each protection
 in turn (the allocator, drop wiping, stack scrubbing, the method list, the summary hiding
 the password) failed a test each time. `+simd128` was slower (157 ms against 128 ms), so
-it's off. Run on a phone's browser on 2026-10-31 (see S3). **Not yet run in Safari, and CI
-hasn't run this job yet.**
+it's off. Run on a phone's browser on 2026-10-31 (see S3), and both CI jobs passed the same
+day. **Not yet run in Safari.**
 
 ## Review gate
 
