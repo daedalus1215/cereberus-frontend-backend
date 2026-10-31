@@ -66,6 +66,17 @@ test("freeing leaves no key behind", () => {
   assert.equal(copiesOf(VAULT_KEY), 0, "the vault key");
 });
 
+test("the master key doesn't outlive deriving", () => {
+  // Scrubbing the stack is what this checks. Without it there are two copies here, and
+  // the master key yields both the auth key and the KEK.
+  const masterKey = raw(first.masterKey);
+  const keys = openFirst();
+  assert.equal(copiesOf(masterKey), 0, "straight after deriving");
+
+  keys.free();
+  assert.equal(copiesOf(masterKey), 0, "after freeing");
+});
+
 test("a master password doesn't stay", () => {
   const typed = "zebra-QUILT-73-café-unique";
   const keys = DerivedKeys.derive(typed, wasm.newSalt(), FAST);
