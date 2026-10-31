@@ -101,8 +101,16 @@ Accepted so far, and worth a second opinion:
 - **Nothing proves the set of entries is complete.** `seq` catches an old copy of an
   entry a device already holds; it can't catch a server hiding an entry from a new
   device.
-- **Wiping is best effort.** Moves can leave copies, and decrypted strings in the
-  webview can't be wiped at all.
+- **Locking wipes keys, not everything.** Keys are measured gone from WebAssembly memory
+  after locking, and checked wiped natively. Decrypted strings already given to the
+  webview can't be reached, and only the WebAssembly build wipes parsing leftovers.
+- **WebAssembly memory doesn't stop a hostile script.** Anything running in the page can
+  read the key from memory while the vault is open. The content security policy is
+  the defence, and Cloudflare could still replace the code entirely (Q3).
+- **The default Argon2id cost has room to rise.** S3 hit its target with plenty to spare:
+  even 128 MiB takes only 1.4 s on the phone's slowest cores. It stays at 64 MiB because
+  older phones will be slower and only one phone was measured, and each account stores
+  its own parameters so they can rise later. Worth asking whether 64 MiB is too cautious.
 
 ## Commits
 
@@ -145,10 +153,18 @@ WebAssembly.**
 
 ### Spikes — on a throwaway `spike/android-crypto` branch, not merged
 
-Android can only be tested through CI, so these go in one APK, with a bare debug
-screen. `tauri-android-build.yml` builds pull requests, so a draft PR from this branch
-gets an APK without waiting for Spec 0's merge. It needs the signing secrets set.
-The browser half of S3 needs Commit 3.
+An APK can only be built in CI, so S1 and S2 go in one APK, with a bare debug screen.
+`tauri-android-build.yml` builds pull requests, so a draft PR from this branch gets an
+APK without waiting for Spec 0's merge. It needs the signing secrets set.
+
+The phone is plugged in with USB debugging on, so Claude installs the artifact and reads
+`adb logcat`. S1's service is started with `am` after force-stopping the app, so
+`MainActivity` isn't running. S2 still needs you, for the fingerprint prompts and for
+enrolling a new fingerprint.
+
+A debug APK compiles Rust unoptimised, because `src-tauri/Cargo.toml` sets no profile.
+The spike needs the override Spec 3 adds, and logs one `derive_keys` timing, to confirm
+S3 inside the app.
 
 - [ ] **S1: Rust from a Kotlin service.** A small Android `Service` calls a JNI
   function in `app_lib` that uses `vault-core`, with `MainActivity` not running.
@@ -161,20 +177,64 @@ The browser half of S3 needs Commit 3.
   `biometric:allow-biometric-cipher` permission, which isn't in its defaults.
   - [ ] Round trip works with `allowDeviceCredential: false`.
   - [ ] Adding a new fingerprint makes decryption fail, not succeed.
-  - [ ] Below Android 11 (API 30) the plugin doesn't call
+  - [x] Below Android 11 (API 30) the plugin doesn't call
     `setAllowedAuthenticators` (`BiometricActivity.kt:173`), and the app's
-    `minSdk` is 24. Decide: either confirm it's still strong-biometric-only there,
-    or offer fingerprint unlock on API 30+ only.
-- [ ] **S3: Argon2id cost.** Time `derive_keys` on your phone and in a browser's
-  WebAssembly. Target about 3 seconds at worst. Lower `m` or `t` only if that's
-  missed, and not below OWASP's minimum (`m = 19 MiB, t = 2, p = 1`).
-- [ ] **(you)** Push the branch, run the Android workflow, install, report.
+    `minSdk` is 24. **Decided: fingerprint unlock is offered on API 30+ only.** The test
+    phone is API 37, so nothing could confirm the older behaviour.
+- [x] **S3: Argon2id cost.** Time `derive_keys` on your phone. Target about 3 seconds at
+  worst. Lower `m` or `t` only if that's missed, and not below OWASP's minimum
+  (`m = 19 MiB, t = 2, p = 1`). **Well under target, so the parameters stay.**
+
+  Measured 2026-10-31 on a Pixel 9a (Android 17), median of 3 to 7 runs:
+
+  | Parameters | Any core | Slowest cores only | Phone's browser (Brave) |
+  |---|---|---|---|
+  | 64 MiB, t = 3 (default) | 130 ms (first run 240) | 700 ms | 150 ms |
+  | 19 MiB, t = 2 (floor) | 30 ms (first run 90) | 140 ms | 30 ms |
+  | 128 MiB, t = 3 | 270 ms (first run 350) | 1.4 s | 320 ms |
+
+  The client's ceiling (256 MiB, t = 16, p = 4) took 2.6 s on any core. On this machine,
+  Chromium took 120 ms at the default, 500 ms with the CPU slowed 4x and 1 second slowed
+  8x.
+
+  The native numbers come from a static `aarch64-unknown-linux-musl` build run through
+  `adb shell`, not from inside the app, at cargo's default release settings, which the app
+  also uses. The browser run used the WebAssembly build under the planned CSP. Unoptimised,
+  as a debug APK is today, the default takes 2.3 s on any core and 8.7 s on the slowest,
+  so don't judge these parameters from one.
+
+  The same run passed all 8 key derivation vectors, 6 entry vectors and 11 failure cases
+  in Brave, and the crate's 69 tests on the phone's CPU (with musl, not the app's bionic).
+- [ ] **(you)** Push the branch and open a draft PR. Claude installs and runs it.
 
 ### Commit 3 — `feat(vault-core): compile to WebAssembly`
 
-- [ ] `wasm-bindgen` wrapper that keeps the vault key inside WASM memory and never
-  returns it to JavaScript.
-- [ ] Same vectors pass under WASM. Randomness comes from `crypto.getRandomValues`.
+- [x] New crate `frontend/vault-core-wasm`, using `wasm-bindgen`, which keeps the vault
+  key and KEK inside WASM memory and never returns them to JavaScript. A test lists
+  everything JavaScript can call, so adding to that surface has to be deliberate.
+- [x] Same vectors pass under WASM. Randomness comes from `crypto.getRandomValues`.
+- [x] **Keys are held at one heap address, and the stack is scrubbed after each crypto
+  operation.** This came from searching WASM memory, where plain arrays left 5 copies of
+  the KEK and one survived freeing. Without scrubbing, 2 copies of the master key stay
+  forever. This lives in `vault-core`, so the apps get it too.
+- [x] **A wiping allocator in the WASM build.** The glue code frees strings after copying
+  them to JavaScript, which left recovery keys and decrypted passwords in freed memory.
+- [x] `tests/memory.test.mjs` searches all of WASM memory after each step, and
+  `vault-core/tests/wiping.rs` inspects each block as it's freed, since the apps don't
+  have that allocator.
+- [x] CI builds and tests it (`vault-core.yml`), and `npm run build:wasm` and
+  `npm run test:wasm` run it locally. Those need
+  `rustup target add wasm32-unknown-unknown` and the `wasm-bindgen-cli` version
+  `Cargo.toml` pins.
+
+Verified 2026-10-30: 69 native tests and 25 through the JavaScript interface pass. Every
+vector and failure case also passes in real Chromium, under a CSP of `script-src 'self'
+'wasm-unsafe-eval'`; without `'wasm-unsafe-eval'` the CSP blocks it. libsodium reads what
+the WASM build writes, the opposite direction from the vectors. Breaking each protection
+in turn (the allocator, drop wiping, stack scrubbing, the method list, the summary hiding
+the password) failed a test each time. `+simd128` was slower (157 ms against 128 ms), so
+it's off. Run on a phone's browser on 2026-10-31 (see S3). **Not yet run in Safari, and CI
+hasn't run this job yet.**
 
 ## Review gate
 
