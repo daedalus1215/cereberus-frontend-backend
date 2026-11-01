@@ -46,7 +46,7 @@ then.
   flag on Android only.
 - [x] The next APK's library shows `0x4000` in `readelf -lW`, and sits on a 16 KB boundary
   inside the APK (run 41305275855).
-- [ ] On the phone, the warning no longer appears.
+- [x] On the phone, the warning no longer appears.
 
 Verified 2026-11-01, without an APK: in a test crate, the flag reached a stand-in linker
 alongside flags set the way Tauri sets them, and on this machine it moved a real library
@@ -109,15 +109,15 @@ and the Kotlin line has only been compiled by CI. Those are the checks below.
 - [x] Open an entry's link. It opens in the phone's browser.
 - [x] Status and navigation bars don't cover the app. The launcher icon isn't
   clipped.
-- [ ] Install a second build over the first; connection settings survive.
-- [ ] The launcher icon is the right size beside the other apps.
+- [x] Install a second build over the first; connection settings survive.
+- [x] The launcher icon is the right size beside the other apps.
 - [ ] A screenshot is refused, and the app is blank in recent apps.
 - [ ] Coming back after 5 minutes or more in the background goes to the sign-in page.
   Coming back sooner doesn't.
 
 **On this machine (you)**
 
-- [ ] In the installed desktop app on Hyprland, copy a password and paste it.
+- [x] In the installed desktop app on Hyprland, copy a password and paste it.
   Copying has only been tested under X11.
 
 ## Finish
