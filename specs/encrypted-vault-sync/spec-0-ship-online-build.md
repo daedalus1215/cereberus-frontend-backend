@@ -44,7 +44,9 @@ then.
   normally on a 4 KB phone, but phones with 16 KB pages need the library aligned for them.
 - [x] [`frontend/.cargo/config.toml`](../../frontend/.cargo/config.toml) passes the linker
   flag on Android only.
-- [ ] Check the next APK: the warning is gone, and `readelf -lW` shows `0x4000`.
+- [x] The next APK's library shows `0x4000` in `readelf -lW`, and sits on a 16 KB boundary
+  inside the APK (run 41305275855).
+- [ ] On the phone, the warning no longer appears.
 
 Verified 2026-11-01, without an APK: in a test crate, the flag reached a stand-in linker
 alongside flags set the way Tauri sets them, and on this machine it moved a real library
