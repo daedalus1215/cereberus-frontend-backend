@@ -1,4 +1,4 @@
-use argon2::{Algorithm, Argon2, Params, Version};
+use argon2::{Algorithm, Argon2, Block, Params, Version};
 use data_encoding::BASE64URL_NOPAD;
 use hkdf::Hkdf;
 use serde::{Deserialize, Serialize};
@@ -14,16 +14,18 @@ const SALT_LEN: usize = 16;
 const INFO_AUTH: &[u8] = b"cereberus/v1/auth";
 const INFO_KEK: &[u8] = b"cereberus/v1/kek";
 
-// Parameters come from the server, which could ask for almost no work and then
-// guess the password cheaply from the auth key it receives. So the floor is
-// enforced here, on every derivation. The floor is OWASP's minimum.
-const MIN_M_KIB: u32 = 19 * 1024;
-const MIN_T: u32 = 2;
+// Parameters come from the server, which could ask for little work and then guess
+// the password cheaply from the auth key it receives. The client can't notice until
+// the key has been sent, so the floor enforced here, on every derivation, is the most
+// a hostile server can save. It's well above OWASP's minimum for that reason.
+const MIN_M_KIB: u32 = 64 * 1024;
+const MIN_T: u32 = 3;
 const MIN_P: u32 = 1;
 // A ceiling too, so a server can't crash a phone by asking for all its memory.
 const MAX_M_KIB: u32 = 256 * 1024;
 const MAX_T: u32 = 16;
-const MAX_P: u32 = 4;
+// No client gains from more lanes, so a server shouldn't get to choose them.
+const MAX_P: u32 = 1;
 
 /// The key derivation function. Only one exists today; naming it lets a later
 /// version add another without guessing.
@@ -48,11 +50,11 @@ pub struct KdfParams {
 }
 
 impl Default for KdfParams {
-    /// What new accounts use: 64 MiB, 3 iterations, 1 lane.
+    /// What new accounts use: 128 MiB, 3 iterations, 1 lane.
     fn default() -> Self {
         KdfParams {
             alg: KdfAlgorithm::Argon2id,
-            m: 64 * 1024,
+            m: 128 * 1024,
             t: 3,
             p: 1,
         }
@@ -102,7 +104,7 @@ pub fn new_salt() -> Result<String, Error> {
 }
 
 /// Runs Argon2id, then splits the result into the auth key and the KEK. Slow on
-/// purpose: up to about a second on a phone.
+/// purpose: up to a second or so on a phone.
 pub fn derive_keys(
     master_password: &str,
     salt: &str,
@@ -132,15 +134,24 @@ pub fn derive_keys(
 
 #[inline(never)]
 fn run_argon2(password: &[u8], salt: &[u8], params: &KdfParams) -> Result<KeyBytes, Error> {
-    let argon2 = Argon2::new(
-        Algorithm::Argon2id,
-        Version::V0x13,
-        Params::new(params.m, params.t, params.p, Some(KEY_LEN))
-            .map_err(|_| Error::InvalidKdfParams)?,
-    );
+    let params = Params::new(params.m, params.t, params.p, Some(KEY_LEN))
+        .map_err(|_| Error::InvalidKdfParams)?;
+    // Our own memory, because Argon2 frees its own without wiping it, and the master
+    // key can be rebuilt from the last block.
+    let mut blocks: Zeroizing<Vec<Block>> = Zeroizing::new(Vec::new());
+    // Reported, not an abort: a server can ask for more memory than a phone has free.
+    blocks
+        .try_reserve_exact(params.block_count())
+        .map_err(|_| Error::OutOfMemory)?;
+    blocks.resize(params.block_count(), Block::default());
     let mut master_key = KeyBytes::zeroed();
-    argon2
-        .hash_password_into(password, salt, master_key.as_mut_slice())
+    Argon2::new(Algorithm::Argon2id, Version::V0x13, params)
+        .hash_password_into_with_memory(
+            password,
+            salt,
+            master_key.as_mut_slice(),
+            blocks.as_mut_slice(),
+        )
         .map_err(|_| Error::InvalidKdfParams)?;
     Ok(master_key)
 }
@@ -212,7 +223,14 @@ mod tests {
         );
         assert_ne!(
             base,
-            kek("correct horse", SALT, &KdfParams { t: 3, ..fast() })
+            kek(
+                "correct horse",
+                SALT,
+                &KdfParams {
+                    t: MIN_T + 1,
+                    ..fast()
+                }
+            )
         );
     }
 
@@ -326,7 +344,7 @@ mod tests {
     #[test]
     fn parameters_have_a_stable_wire_format() {
         let json = serde_json::to_string(&KdfParams::default()).unwrap();
-        assert_eq!(json, r#"{"alg":"argon2id","m":65536,"t":3,"p":1}"#);
+        assert_eq!(json, r#"{"alg":"argon2id","m":131072,"t":3,"p":1}"#);
     }
 
     #[test]
