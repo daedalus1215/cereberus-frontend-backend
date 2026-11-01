@@ -295,8 +295,9 @@ day. **Not yet run in Safari.**
 - [x] Fresh-context review of this spec and the crate, given the code and not
   these conclusions (Q2).
 - [x] Every finding fixed or written down here with a reason. See "Review" above.
-- [ ] **(you)** Read the table at the top and accept what it leaves exposed.
-- [ ] Mark **Format frozen** in the README. Later changes need a new `cv2` format
+- [x] **(you)** Read the table at the top and accept what it leaves exposed. Accepted
+  2026-11-01.
+- [x] Mark **Format frozen** in the README. Later changes need a new `cv2` format
   and a re-encrypting upgrade path.
 
 ## Acceptance criteria
