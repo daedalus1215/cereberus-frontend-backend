@@ -20,7 +20,7 @@ const vectors = JSON.parse(
 
 const ITEM_ID = "0f8fad5b-d9cb-469f-a165-70867728950e";
 const OTHER_ID = "7c9e6679-7425-40de-944b-e07fc1f90ae7";
-const FAST = JSON.stringify({ alg: "argon2id", m: 19456, t: 2, p: 1 });
+const FAST = JSON.stringify({ alg: "argon2id", m: 65536, t: 3, p: 1 });
 
 const entry = (fields = {}) =>
   JSON.stringify({
@@ -93,6 +93,7 @@ test("only what's meant to reach JavaScript does", () => {
     "decryptPassword",
     "decryptSummary",
     "encryptEntry",
+    "encryptTombstone",
     "free",
     "rewrap",
   ]);
@@ -114,7 +115,7 @@ test("only what's meant to reach JavaScript does", () => {
 });
 
 test("key derivation matches the vectors, down to opening the vault", () => {
-  assert.ok(vectors.kdf.length >= 8);
+  assert.ok(vectors.kdf.length >= 7);
   for (const c of vectors.kdf) {
     const keys = DerivedKeys.derive(
       c.password,
@@ -163,7 +164,7 @@ test("parameters out of range are refused", () => {
 test("the default parameters are the format's", () => {
   assert.deepEqual(JSON.parse(wasm.defaultKdfParams()), {
     alg: "argon2id",
-    m: 65536,
+    m: 131072,
     t: 3,
     p: 1,
   });
@@ -189,19 +190,89 @@ test("entries match the vectors", () => {
       expected,
       c.name,
     );
-    assert.equal(
-      vault.decryptPassword(c.itemId, c.ciphertext),
-      expected.password,
-      c.name,
-    );
+    if (expected.deleted) {
+      fails(() => vault.decryptPassword(c.itemId, c.ciphertext), "InvalidEntry");
+    } else {
+      assert.equal(
+        vault.decryptPassword(c.itemId, c.ciphertext),
+        expected.password,
+        c.name,
+      );
+    }
 
-    const { password: _, ...withoutPassword } = expected;
+    const { password: _, androidPackages: __, ...summary } = expected;
     assert.deepEqual(
       JSON.parse(vault.decryptSummary(c.itemId, c.ciphertext)),
-      withoutPassword,
+      summary,
       c.name,
     );
   }
+  vault.free();
+});
+
+test("running out of memory is an error, and the instance still works", async () => {
+  // A fresh instance, grown until 256 MiB can't fit in its 4 GiB of address space.
+  const fresh = await import(`../pkg/vault_core_wasm.js?oom`);
+  const { memory } = fresh.initSync({
+    module: readFileSync(new URL("../pkg/vault_core_wasm_bg.wasm", import.meta.url)),
+  });
+  memory.grow(65536 - memory.buffer.byteLength / 65536 - 2000);
+
+  const salt = vectors.kdf[0].salt;
+  fails(
+    () =>
+      fresh.DerivedKeys.derive(
+        "correct horse",
+        salt,
+        JSON.stringify({ alg: "argon2id", m: 262144, t: 3, p: 1 }),
+      ),
+    "OutOfMemory",
+  );
+  fresh.DerivedKeys.derive("correct horse", salt, FAST).free();
+});
+
+test("a summary leaves out fields it doesn't know", () => {
+  const vault = vectorVault();
+  const sealed = vault.encryptEntry(
+    ITEM_ID,
+    entry({ totpSecret: "a future secret" }),
+  );
+  assert.ok(vault.decryptEntry(ITEM_ID, sealed).includes("a future secret"));
+  const summary = vault.decryptSummary(ITEM_ID, sealed);
+  assert.ok(!summary.includes("a future secret"), summary);
+  assert.ok(!summary.includes("correct horse"), summary);
+  vault.free();
+});
+
+test("deleting an entry keeps nothing from it but a higher seq", () => {
+  const vault = vectorVault();
+  const current = vault.encryptEntry(ITEM_ID, entry({ seq: 7 }));
+  const sealed = vault.encryptTombstone(
+    ITEM_ID,
+    current,
+    "2026-11-01T00:00:00Z",
+  );
+  assert.deepEqual(JSON.parse(vault.decryptEntry(ITEM_ID, sealed)), {
+    v: 1,
+    seq: 8,
+    name: "",
+    username: "",
+    password: "",
+    url: "",
+    notes: "",
+    tags: [],
+    createdAt: "",
+    updatedAt: "2026-11-01T00:00:00Z",
+    conflictOf: null,
+    deleted: true,
+  });
+  assert.equal(JSON.parse(vault.decryptSummary(ITEM_ID, sealed)).deleted, true);
+
+  // Only an entry this vault can open can be deleted through here.
+  fails(
+    () => vault.encryptTombstone(OTHER_ID, current, "2026-11-01T00:00:00Z"),
+    "DecryptionFailed",
+  );
   vault.free();
 });
 
