@@ -38,6 +38,27 @@ const parseBaseUrl = (apiBaseUrl: string): URL | null => {
   }
 };
 
+/** The host of a server address, for showing it. Null if it isn't a full address. */
+export const hostOf = (apiBaseUrl: string): string | null =>
+  parseBaseUrl(apiBaseUrl)?.host ?? null;
+
+/** Whether two addresses are different servers, so a session can't move between them. */
+export const isDifferentServer = (a: string, b: string): boolean =>
+  (parseBaseUrl(a)?.origin ?? null) !== (parseBaseUrl(b)?.origin ?? null);
+
+/**
+ * Whether these settings would send the saved Access token to another server. Testing
+ * an address sends the token to it, and this form can be opened while signed out, so
+ * the saved secret must never carry over to a new address.
+ */
+export const sendsSavedTokenElsewhere = (
+  saved: ApiConfig,
+  next: ApiConfig,
+): boolean =>
+  !!saved.cfAccessClientSecret &&
+  next.cfAccessClientSecret === saved.cfAccessClientSecret &&
+  isDifferentServer(saved.apiBaseUrl, next.apiBaseUrl);
+
 /**
  * Asks the backend's health check (/api/healthz) whether these settings get
  * through: Cloudflare Access has to accept the service token, and the
