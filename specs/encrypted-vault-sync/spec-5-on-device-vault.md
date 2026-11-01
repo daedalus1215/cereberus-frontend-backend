@@ -73,7 +73,9 @@ in to sync.
 ### Commit 4 — `feat(frontend): lock and sign-out`
 
 - [ ] Auto-lock after the Q6 timeout in the background. Locking zeroizes keys in Rust
-  and clears decrypted data from the screen and from TanStack Query.
+  and clears decrypted data from the screen and from TanStack Query. Spec 0's
+  [`background-lock.ts`](../../frontend/src/tauri/background-lock.ts) already decides when;
+  today it signs out, so point it at locking instead.
 - [ ] A manual **Lock** button, separate from **Sign out**.
 - [ ] Sign-out deletes the local file and any `biometricBlob`, with a warning.
 
@@ -89,10 +91,10 @@ in to sync.
   password, and offer to re-enable it.
 - [ ] Linux desktop stays on the master password; the plugin's cipher is Android-only.
 
-### Commit 6 — `feat(android): block screenshots and recent-apps thumbnails`
+### Commit 6 — `feat(android): a setting to allow screenshots`
 
-- [ ] `FLAG_SECURE` in [`MainActivity.kt`](../../frontend/src-tauri/gen/android/app/src/main/java/com/cereberus/app/MainActivity.kt),
-  on by default, with a Settings toggle (Q5).
+- [ ] `FLAG_SECURE` in [`MainActivity.kt`](../../frontend/src-tauri/gen/android/app/src/main/java/com/cereberus/app/MainActivity.kt)
+  has been on since Spec 0. Add the Settings toggle (Q5), defaulting to blocked.
 
 ### Commit 7 — `docs(frontend): describe the on-device vault`
 
