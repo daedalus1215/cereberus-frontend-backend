@@ -12,6 +12,7 @@ import { RegisterPage } from "./pages/RegisterPage/RegisterPage";
 import { HomePage } from "./pages/HomePage/HomePage";
 import { SettingsPage } from "./pages/SettingsPage/SettingsPage";
 import { Header } from "./components/Header/Header";
+import { useBackgroundLock } from "./tauri/background-lock";
 
 export const ROUTES = {
   LANDING_PAGE: "landing-page",
@@ -19,7 +20,8 @@ export const ROUTES = {
   REGISTER_PAGE: "register-page",
 };
 function AppRoutes() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
+  useBackgroundLock(isAuthenticated, logout);
   if (isAuthenticated) {
     return (
       <Routes>
