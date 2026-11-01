@@ -77,6 +77,20 @@ showed nothing until the server answered; without the fix, the old list came str
 the cache. **Only a phone can show that Android's WebView reports going to the background,**
 and the Kotlin line has only been compiled by CI. Those are the checks below.
 
+### Commit 5 — `fix(frontend): keep the Access secret with its server`
+
+From the security review (Spec 1, finding 11). Spec 0 wasn't tagged yet, so it goes in `v0.1.0`.
+
+- [x] The connection form never sends a saved Access secret to a new address. Submitting one
+  clears the fields and asks for that server's token.
+- [x] Changing server signs out, so the session token doesn't follow.
+- [x] The login screen shows the server's host.
+- [x] Setting the clock back no longer gets past the background lock.
+- [x] The backend's log serializer no longer names `req.body`.
+
+Verified 2026-11-01: unit tests for the address comparison and the clock, which fail if the
+checks are removed. **Not yet run in the Tauri app.** Those are the checks below.
+
 ## Your steps, in order
 
 - [ ] **(you)** Back up the keystores somewhere off this machine:
@@ -111,6 +125,9 @@ and the Kotlin line has only been compiled by CI. Those are the checks below.
   clipped.
 - [x] Install a second build over the first; connection settings survive.
 - [x] The launcher icon is the right size beside the other apps.
+- [ ] The login screen shows your server's host.
+- [ ] In Server settings, change only the address and save: the token fields clear and it
+  asks for that server's token. Nothing is sent. Change it back afterwards.
 - [ ] A screenshot is refused, and the app is blank in recent apps.
 - [ ] Coming back after 5 minutes or more in the background goes to the sign-in page.
   Coming back sooner doesn't.
