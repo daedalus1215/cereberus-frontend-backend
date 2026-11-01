@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 import { Logo } from "../../../components/Logo/Logo";
-import { isTauri } from "../../../tauri/api-config";
+import { currentServerHost, isTauri } from "../../../tauri/api-config";
 import { openConnectionSettings } from "../../../tauri/connection-settings";
 import styles from "./Login.module.css";
 
@@ -84,13 +85,24 @@ export function Login({ onLogin }: LoginProps) {
         Don't have an account? <Link to="/register">Register here</Link>
       </div>
       {isTauri() && (
-        <Button
-          size="small"
-          onClick={() => openConnectionSettings()}
-          sx={{ display: "block", mx: "auto", mt: 1, textTransform: "none" }}
-        >
-          Server settings
-        </Button>
+        <>
+          {/* So a server changed behind your back shows before you type a password. */}
+          <Typography
+            variant="caption"
+            component="div"
+            align="center"
+            sx={{ mt: 1 }}
+          >
+            Server: {currentServerHost()}
+          </Typography>
+          <Button
+            size="small"
+            onClick={() => openConnectionSettings()}
+            sx={{ display: "block", mx: "auto", textTransform: "none" }}
+          >
+            Server settings
+          </Button>
+        </>
       )}
     </div>
   );
