@@ -11,14 +11,20 @@ use std::sync::atomic::{AtomicBool, AtomicU8, AtomicUsize, Ordering};
 
 use data_encoding::BASE64URL_NOPAD;
 use serde_json::Value;
-use vault_core::{KdfParams, RecoveryKey, decrypt_entry, derive_keys, unwrap_vault_key};
+use vault_core::{
+    KdfParams, RecoveryKey, decrypt_entry, derive_keys, encrypt_entry, unwrap_vault_key,
+};
 
 const MAX_NEEDLE: usize = 128;
+// Only Argon2's memory is this big. It holds no one value to look for, because the master
+// key is rebuilt from it rather than stored in it, so these must be freed as all zeros.
+const LARGE: usize = 1024 * 1024;
 
 static WATCHING: AtomicBool = AtomicBool::new(false);
 static NEEDLE: [AtomicU8; MAX_NEEDLE] = [const { AtomicU8::new(0) }; MAX_NEEDLE];
 static NEEDLE_LEN: AtomicUsize = AtomicUsize::new(0);
 static SIGHTINGS: AtomicUsize = AtomicUsize::new(0);
+static DIRTY_LARGE_BLOCKS: AtomicUsize = AtomicUsize::new(0);
 
 struct Inspecting;
 
@@ -38,7 +44,11 @@ unsafe impl GlobalAlloc for Inspecting {
                 *byte = stored.load(Ordering::SeqCst);
             }
             let block = unsafe { slice::from_raw_parts(ptr, layout.size()) };
-            if block.windows(len).any(|window| window == &needle[..len]) {
+            if layout.size() >= LARGE {
+                if block.iter().any(|byte| *byte != 0) {
+                    DIRTY_LARGE_BLOCKS.fetch_add(1, Ordering::SeqCst);
+                }
+            } else if block.windows(len).any(|window| window == &needle[..len]) {
                 SIGHTINGS.fetch_add(1, Ordering::SeqCst);
             }
         }
@@ -49,20 +59,26 @@ unsafe impl GlobalAlloc for Inspecting {
 #[global_allocator]
 static ALLOCATOR: Inspecting = Inspecting;
 
-/// How many freed blocks still held `secret` when `value` was dropped.
-fn sightings_of<T>(secret: &[u8], value: T) -> usize {
+/// How many freed blocks still held `secret` while `work` ran.
+fn sightings_during(secret: &[u8], work: impl FnOnce()) -> usize {
     assert!(!secret.is_empty() && secret.len() <= MAX_NEEDLE);
     for (stored, byte) in NEEDLE.iter().zip(secret) {
         stored.store(*byte, Ordering::SeqCst);
     }
     NEEDLE_LEN.store(secret.len(), Ordering::SeqCst);
     SIGHTINGS.store(0, Ordering::SeqCst);
+    DIRTY_LARGE_BLOCKS.store(0, Ordering::SeqCst);
 
     WATCHING.store(true, Ordering::SeqCst);
-    drop(value);
+    work();
     WATCHING.store(false, Ordering::SeqCst);
 
     SIGHTINGS.load(Ordering::SeqCst)
+}
+
+/// How many freed blocks still held `secret` when `value` was dropped.
+fn sightings_of<T>(secret: &[u8], value: T) -> usize {
+    sightings_during(secret, || drop(value))
 }
 
 fn raw(value: &Value) -> Vec<u8> {
@@ -80,6 +96,29 @@ fn secrets_are_wiped_before_their_memory_is_freed() {
     let unwiped: Vec<u8> = b"a secret nobody wiped".to_vec();
     let needle = unwiped.clone();
     assert_eq!(sightings_of(&needle, unwiped), 1, "the inspection works");
+    let unwiped_large = vec![1u8; LARGE];
+    sightings_of(b"anything", unwiped_large);
+    assert_eq!(
+        DIRTY_LARGE_BLOCKS.load(Ordering::SeqCst),
+        1,
+        "the inspection of large blocks works"
+    );
+
+    let cheapest = &vectors["kdf"][1];
+    let cheapest_params: KdfParams = serde_json::from_value(cheapest["params"].clone()).unwrap();
+    sightings_during(b"anything", || {
+        derive_keys(
+            cheapest["password"].as_str().unwrap(),
+            cheapest["salt"].as_str().unwrap(),
+            &cheapest_params,
+        )
+        .unwrap();
+    });
+    assert_eq!(
+        DIRTY_LARGE_BLOCKS.load(Ordering::SeqCst),
+        0,
+        "Argon2's memory"
+    );
 
     let case = &vectors["kdf"][0];
     let params: KdfParams = serde_json::from_value(case["params"].clone()).unwrap();
@@ -119,11 +158,26 @@ fn secrets_are_wiped_before_their_memory_is_freed() {
         entry_case["ciphertext"].as_str().unwrap(),
     )
     .unwrap();
-    assert_eq!(sightings_of(&vault_key, opened), 0, "the vault key");
 
     // What's in an entry, field by field. Each is copied out first, into memory that
     // outlives the watching.
     let password = entry.password.clone();
+
+    // With nothing JSON would escape, or this search couldn't find it anyway. It comes
+    // early in the JSON, so a buffer growing as it's written would copy it.
+    let id = entry_case["itemId"].as_str().unwrap();
+    let mut plain = entry.clone();
+    plain.password = "nothing-json-would-escape".into();
+    let plain_password = plain.password.clone();
+    assert_eq!(
+        sightings_during(plain_password.as_bytes(), || {
+            encrypt_entry(&opened, id, &plain).unwrap();
+        }),
+        0,
+        "the password, while encrypting"
+    );
+    assert_eq!(sightings_of(&vault_key, opened), 0, "the vault key");
+
     let username = entry.username.clone();
     let notes = entry.notes.clone();
     let tag = entry.tags[0].clone();
