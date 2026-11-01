@@ -107,6 +107,11 @@ Accepted so far, and worth a second opinion:
 - **WebAssembly memory doesn't stop a hostile script.** Anything running in the page can
   read the key from memory while the vault is open. The content security policy is
   the defence, and Cloudflare could still replace the code entirely (Q3).
+- **Fingerprint unlock may leave keys in JVM memory.** `tauri-plugin-biometric` handles the
+  plaintext as strings (S2). The choice is to accept that for fingerprint users, or to write
+  a small Kotlin cipher over byte arrays that are wiped after use, reached through JNI the
+  way S1 tests. Any Keystore route needs the plaintext in the JVM briefly; the question is
+  whether it can be wiped.
 - **The default Argon2id cost has room to rise.** S3 hit its target with plenty to spare:
   even 128 MiB takes only 1.4 s on the phone's slowest cores. It stays at 64 MiB because
   older phones will be slower and only one phone was measured, and each account stores
@@ -174,8 +179,21 @@ S3 inside the app.
   no built-in XChaCha20, so a Kotlin decrypt would need a library or AES-256-GCM.
 - [ ] **S2: Fingerprint-protected key.** `tauri-plugin-biometric` 2.5.0 calling
   `biometric_cipher` from Rust ([its source](https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/biometric)),
-  so the key doesn't pass through the webview. Needs the
-  `biometric:allow-biometric-cipher` permission, which isn't in its defaults.
+  so the key doesn't pass through the webview. The
+  `biometric:allow-biometric-cipher` permission only applies to calls from the webview, so
+  leaving it out should keep the webview from reaching the cipher at all. The spike runs
+  without it to confirm the Rust call works.
+
+  From reading the plugin's source (2026-11-01), for Spec 5:
+  - **The plaintext passes through JVM strings.** It goes through `Intent` extras, and
+    `BiometricActivity.encryptDecryptData` is a static field that keeps the plaintext after
+    encrypting. None of that can be wiped, so the vault key and auth key would outlive a
+    lock there, which is what `vault-core` works to avoid. See "For the review to check".
+  - `status` checks `BIOMETRIC_WEAK` but the cipher requires `BIOMETRIC_STRONG`, so it can
+    say "available" on a phone where the cipher can't work. Don't rely on it alone.
+  - Decrypting with an invalidated key fails. Encrypting silently replaces that key, which
+    is harmless because the old blob can't be opened anyway.
+
   - [ ] Round trip works with `allowDeviceCredential: false`.
   - [ ] Adding a new fingerprint makes decryption fail, not succeed.
   - [x] Below Android 11 (API 30) the plugin doesn't call
