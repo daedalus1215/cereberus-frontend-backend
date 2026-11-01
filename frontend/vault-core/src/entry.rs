@@ -6,9 +6,9 @@ use serde_json::{Map, Value};
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 use crate::Error;
+use crate::envelope::{MAX_PLAINTEXT_LEN, open, seal};
 #[cfg(test)]
 use crate::envelope::{NONCE_LEN, seal_with_nonce};
-use crate::envelope::{open, seal};
 use crate::vault::VaultKey;
 
 /// The entry format this version reads and writes.
@@ -17,10 +17,9 @@ pub const ENTRY_VERSION: u32 = 1;
 const AAD_ITEM_PREFIX: &str = "cereberus/v1/item|";
 const PAD_BLOCK: usize = 256;
 const PAD_MARKER: u8 = 0x80;
-// Fits the server's 256 KiB limit once nonce, tag and base64url are added. Refused
-// here because an entry the server turns away would otherwise sit in a device's
-// queue forever.
-const MAX_PADDED_LEN: usize = 191 * 1024;
+// Refused here because an entry the server turns away would otherwise sit in a
+// device's queue forever.
+const MAX_PADDED_LEN: usize = MAX_PLAINTEXT_LEN;
 
 /// One login, as it exists only on a device. Everything here is encrypted before it
 /// leaves one. Fields a newer version of the app added are kept and written back, so
@@ -51,6 +50,9 @@ pub struct Entry {
     pub updated_at: String,
     /// If this is the losing side of a sync conflict, the entry it conflicted with.
     pub conflict_of: Option<String>,
+    /// Whether this version is a deletion. Left out of the JSON unless it's true.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub deleted: bool,
     /// Fields from a newer version of the app. Best effort on wiping: `serde_json`
     /// values can't be zeroized.
     #[serde(flatten)]
@@ -72,8 +74,35 @@ impl Default for Entry {
             created_at: String::new(),
             updated_at: String::new(),
             conflict_of: None,
+            deleted: false,
             extra: Map::new(),
         }
+    }
+}
+
+impl Entry {
+    /// What replaces this entry when it's deleted. It's encrypted and ordered by `seq`
+    /// like any other version, so a delete can't be forged, or used to get a device to
+    /// accept an older copy afterwards. It keeps nothing from the entry but `seq`.
+    pub fn tombstone(&self, updated_at: &str) -> Entry {
+        let mut tombstone = Entry::default();
+        tombstone.seq = self.seq.saturating_add(1);
+        tombstone.updated_at = updated_at.to_owned();
+        tombstone.deleted = true;
+        tombstone
+    }
+
+    /// Whether this holds nothing that a deletion shouldn't.
+    fn is_blank(&self) -> bool {
+        self.name.is_empty()
+            && self.username.is_empty()
+            && self.password.is_empty()
+            && self.url.is_empty()
+            && self.notes.is_empty()
+            && self.tags.is_empty()
+            && self.created_at.is_empty()
+            && self.conflict_of.is_none()
+            && self.extra.is_empty()
     }
 }
 
@@ -160,16 +189,25 @@ fn to_padded_json(entry: &Entry) -> Result<Zeroizing<Vec<u8>>, Error> {
     if entry.v != ENTRY_VERSION {
         return Err(Error::UnsupportedEntryVersion);
     }
-    let json = Zeroizing::new(serde_json::to_vec(entry).map_err(|_| Error::InvalidEntry)?);
-    let padded_len = (json.len() / PAD_BLOCK + 1) * PAD_BLOCK;
+    // Refused when writing only, so a later version can add to tombstones. Otherwise a bug
+    // could keep a real password forever, in a record that lists hide.
+    if entry.deleted && !entry.is_blank() {
+        return Err(Error::InvalidEntry);
+    }
+    // One buffer that never grows, because growing would leave copies of the password in
+    // the blocks it freed. It's zeros already, so only the marker needs writing.
+    let mut padded = Zeroizing::new(vec![0; MAX_PADDED_LEN]);
+    let mut unused = padded.as_mut_slice();
+    // Writing to memory can only fail by running out of it.
+    serde_json::to_writer(&mut unused, entry).map_err(|_| Error::EntryTooLarge)?;
+    let json_len = MAX_PADDED_LEN - unused.len();
+
+    let padded_len = (json_len / PAD_BLOCK + 1) * PAD_BLOCK;
     if padded_len > MAX_PADDED_LEN {
         return Err(Error::EntryTooLarge);
     }
-
-    let mut padded = Zeroizing::new(Vec::with_capacity(padded_len));
-    padded.extend_from_slice(&json);
-    padded.push(PAD_MARKER);
-    padded.resize(padded_len, 0);
+    padded[json_len] = PAD_MARKER;
+    padded.truncate(padded_len);
     Ok(padded)
 }
 
@@ -403,6 +441,87 @@ mod tests {
             json,
             r#"{"v":1,"seq":0,"name":"","username":"","password":"","url":"","notes":"","tags":[],"createdAt":"","updatedAt":"","conflictOf":null}"#
         );
+    }
+
+    #[test]
+    fn a_tombstone_keeps_nothing_but_a_higher_seq() {
+        let mut full = entry();
+        full.extra
+            .insert("androidPackages".into(), "com.example".into());
+
+        let tombstone = full.tombstone("2026-11-01T00:00:00Z");
+        let sealed = encrypt_entry(&key(), ID, &tombstone).unwrap();
+        let opened = decrypt_entry(&key(), ID, &sealed).unwrap();
+
+        assert!(opened.deleted);
+        assert_eq!(opened.seq, full.seq + 1);
+        assert_eq!(opened.updated_at, "2026-11-01T00:00:00Z");
+
+        let mut expected = Entry::default();
+        expected.seq = full.seq + 1;
+        expected.updated_at = "2026-11-01T00:00:00Z".into();
+        expected.deleted = true;
+        assert_eq!(opened, expected);
+    }
+
+    #[test]
+    fn a_tombstone_is_the_size_of_a_small_entry() {
+        let mut small = Entry::default();
+        small.updated_at = "2026-11-01T00:00:00Z".into();
+        assert_eq!(
+            encrypt_entry(&key(), ID, &entry().tombstone("2026-11-01T00:00:00Z"))
+                .unwrap()
+                .len(),
+            encrypt_entry(&key(), ID, &small).unwrap().len()
+        );
+    }
+
+    #[test]
+    fn a_deleted_entry_with_anything_left_in_it_cant_be_written() {
+        let mut full = entry();
+        full.deleted = true;
+        assert_eq!(
+            encrypt_entry(&key(), ID, &full).err(),
+            Some(Error::InvalidEntry)
+        );
+
+        let blank = || {
+            let mut blank = Entry::default();
+            blank.deleted = true;
+            blank
+        };
+        let mut cases = vec![blank(); 9];
+        cases[0].name = "x".into();
+        cases[1].username = "x".into();
+        cases[2].password = "x".into();
+        cases[3].url = "x".into();
+        cases[4].notes = "x".into();
+        cases[5].tags = vec!["x".into()];
+        cases[6].created_at = "x".into();
+        cases[7].conflict_of = Some(OTHER_ID.into());
+        cases[8].extra.insert("x".into(), "x".into());
+        for (i, case) in cases.iter().enumerate() {
+            assert_eq!(
+                encrypt_entry(&key(), ID, case).err(),
+                Some(Error::InvalidEntry),
+                "case {i}"
+            );
+        }
+        assert!(encrypt_entry(&key(), ID, &blank()).is_ok());
+    }
+
+    #[test]
+    fn a_deleted_entry_with_more_in_it_can_still_be_read() {
+        let sealed = sealed_padded(br#"{"v":1,"seq":2,"name":"","username":"","password":"","url":"","notes":"","tags":[],"createdAt":"","updatedAt":"","conflictOf":null,"deleted":true,"deletedBy":"a later version"}"#);
+        let opened = decrypt_entry(&key(), ID, &sealed).unwrap();
+        assert!(opened.deleted);
+        assert_eq!(opened.extra["deletedBy"], "a later version");
+    }
+
+    #[test]
+    fn an_entry_without_the_deleted_field_isnt_deleted() {
+        let sealed = sealed_padded(br#"{"v":1,"seq":1,"name":"","username":"","password":"p","url":"","notes":"","tags":[],"createdAt":"","updatedAt":"","conflictOf":null}"#);
+        assert!(!decrypt_entry(&key(), ID, &sealed).unwrap().deleted);
     }
 
     #[test]
