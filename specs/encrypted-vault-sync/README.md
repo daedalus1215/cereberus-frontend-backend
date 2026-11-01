@@ -21,7 +21,7 @@ server, and syncs when it can. Android can fill passwords into other apps.
 
 | # | Spec | Depends on | Status |
 |---|------|-----------|--------|
-| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | Pushed on `android`, no PR yet. Waiting on you: secrets, PR, phone checks, merge, tag |
+| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | PR #31 open, and its APK installs and works. New logo size and phone protections waiting to be committed. Left: last phone checks, public hostname, merge, tag |
 | 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | All three commits and spike S3 done. Spikes S1 and S2 and the review are left |
 | 2 | [Backend: encrypted vault API](./spec-2-backend-vault-api.md) | Spec 1 | Not started |
 | 3 | [Clients: encrypt on the device](./spec-3-clients.md) | Specs 1, 2 | Not started |
@@ -33,10 +33,10 @@ server, and syncs when it can. Android can fill passwords into other apps.
 The plan's four steps map on like this: client-side encryption is Specs 1–4,
 the on-device copy is Spec 5, offline edits are Spec 6, autofill is Spec 7.
 
-**Last stopped:** 2026-10-31. Spec 1's Commit 3 (WebAssembly) and spike S3 are finished and
-verified, but not committed. Blocked on you: committing, the signing secrets and a PR,
-because spikes S1 and S2 need an APK. Those are next, then the review gate, and only then
-can Spec 2 start. The format isn't frozen until that review is done.
+**Last stopped:** 2026-11-01. PR #31's APK works on the phone over the LAN. The 16 KB fix, the
+smaller logo and the phone protections (Spec 0's Commits 2 to 4) are done but not committed.
+After that: Spec 0's last checks, merge and tag, then spikes S1 and S2, then the review gate,
+and only then can Spec 2 start. The format isn't frozen until that review is done.
 
 ## How to pick this up
 
@@ -73,6 +73,9 @@ user's; Claude can't do them.
 - **No master password and no recovery key means the vault is gone.** The server
   can't help, by design. Setup makes you save a recovery key.
 - **Sync never silently drops a version.** See Spec 6.
+- **APKs reach the phone through GitHub,** not over USB, so nothing depends on being
+  plugged into this machine. You install them and report what you see, so test builds show
+  their results on screen. *(user, 2026-11-01)*
 
 The crypto details in Spec 1 are Claude's proposal until its review gate is
 passed. After that they're frozen, because changing them means re-encrypting.
@@ -87,8 +90,8 @@ Each has a default that applies unless you change it.
 | Q2 | Who reviews the crypto design? | A fresh-context Claude review plus the `/security-review` skill. That isn't a professional audit, and a person who knows this area would be better | Spec 1 gate |
 | Q3 | After Spec 4, should the web app come off the public hostname? Cloudflare can't read app traffic any more, but it could alter the JavaScript it serves to a browser. Only the apps, which carry their own UI, are safe from that. The API stays public for them | Yes: web app on the LAN address only | End of Spec 4 |
 | Q4 | Which passwords get rotated after the migration? Everything revealed through the tunnel so far has been readable by Cloudflare, and old backups keep readable copies for up to 12 months (Spec 4) | Rotate the high-value ones: email, banking, anything that resets other accounts | End of Spec 4 |
-| Q5 | Block screenshots and recent-apps thumbnails on Android (`FLAG_SECURE`)? | On, with a Settings toggle to allow screenshots | Spec 5 |
-| Q6 | How long before the app locks itself? | 5 minutes in the background | Spec 5 |
+| Q5 | Block screenshots and recent-apps thumbnails on Android (`FLAG_SECURE`)? | On since Spec 0. Spec 5 adds a Settings toggle to allow screenshots | Spec 5 |
+| Q6 | How long before the app locks itself? | 5 minutes in the background, since Spec 0 | Spec 5 |
 
 ## Shared notes
 
@@ -104,9 +107,9 @@ Each has a default that applies unless you change it.
   install on the phone. Group Android checks together rather than running them
   one change at a time. `workflow_dispatch` builds any branch once the workflows
   are on `main`, which is why Spec 0 comes first.
-- **Some phone checks don't need an APK.** With the phone plugged in and USB debugging on,
-  a static `aarch64-unknown-linux-musl` build runs through `adb shell`, and `adb reverse`
-  serves a page to the phone's browser over USB. Spike S3 ran both ways.
+- **What ran over USB.** Spike S3 ran once with the phone plugged in, before the decision
+  above: a static `aarch64-unknown-linux-musl` build through `adb shell`, and a page served
+  to the phone's browser with `adb reverse`.
 - **Desktop checks are local.** The earlier end-to-end rig was an Ubuntu 24.04
   container with Xvfb and xdotool, a throwaway Postgres, the real backend image
   and a stub imitating Cloudflare Access. It lived in a session scratchpad, so
