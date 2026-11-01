@@ -7,6 +7,21 @@
       "salt": "AAECAwQFBgcICQoLDA0ODw",
       "params": {
         "alg": "argon2id",
+        "m": 131072,
+        "t": 3,
+        "p": 1
+      },
+      "masterKey": "BLzaEpId6es1ZxHcLEUSncX1azMPIyy7toP13YOgc2w",
+      "authKey": "18ddkE1sSAW0h_DObvNsA9mN1nxr0AcvRFLxYiL7FXI",
+      "kek": "O4SeUvNmxgkWOAKxUzLKtdD1IFki4vapDUtYEHt9W34",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXGqOT7GOsyZT9fVft5GzVgMLqNz1t_J_3FLQHyWt25IEL74yBySyJVzvvm84Gm5Pm"
+    },
+    {
+      "name": "the cheapest parameters allowed",
+      "password": "correct horse battery staple",
+      "salt": "AAECAwQFBgcICQoLDA0ODw",
+      "params": {
+        "alg": "argon2id",
         "m": 65536,
         "t": 3,
         "p": 1
@@ -17,49 +32,19 @@
       "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXQC1ZEGBudn7Z8cYdAhkjh-PcaJbclocNv6EcmvQ0BVhiViQhWl3wHyy5lhzb2r96"
     },
     {
-      "name": "the cheapest parameters allowed",
-      "password": "correct horse battery staple",
-      "salt": "AAECAwQFBgcICQoLDA0ODw",
-      "params": {
-        "alg": "argon2id",
-        "m": 19456,
-        "t": 2,
-        "p": 1
-      },
-      "masterKey": "gYJZtjEAJqjg26xdLmknq8_bB7MiWPrE9hsYuA-SkIU",
-      "authKey": "TgRNsNwo5RpP8RPgwK4HUcPZnVQjupgCm-fJ4S5qJgc",
-      "kek": "QQg_Bf1TZQCBnGrr1upQkuM-gzFUaYmlFnBl53D8oxk",
-      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXgHbUbwTnJ6HrdSUZQkl4-QByfHv3Lp3ORmwRF-zHYc_AjzSYDZ0kiD2t4aAFarWs"
-    },
-    {
-      "name": "two lanes",
-      "password": "correct horse battery staple",
-      "salt": "AAECAwQFBgcICQoLDA0ODw",
-      "params": {
-        "alg": "argon2id",
-        "m": 19456,
-        "t": 2,
-        "p": 2
-      },
-      "masterKey": "2H9CJBMC_n10v6zYZskkV6SWmeilDRmsi0YnOyxYGpA",
-      "authKey": "dO3cgJd-efb-mEqiIOdHP3LwAzYCDCOppoGakUzEZCg",
-      "kek": "0dS_UxImfRAOkJRW1ST3P_n33D0VEXnnlnpIIdwCZsA",
-      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXqa_wJ8uT_pBAR41BLiCnGJU3FGpnOHLCaDrnpWRRtPMeEqMqLX2aV_fCe6Hgyfbp"
-    },
-    {
       "name": "accents, precomposed",
       "password": "café päss",
       "salt": "AAECAwQFBgcICQoLDA0ODw",
       "params": {
         "alg": "argon2id",
-        "m": 65536,
+        "m": 131072,
         "t": 3,
         "p": 1
       },
-      "masterKey": "XxRr_0aY3LTYFHzkhnvl6LeJyReEiJaEOv1IUBRl7qs",
-      "authKey": "J4W20rIXLgD0ZoCz-khW6Ei9riF5wdlZN-d6rpRSJ6Y",
-      "kek": "MGRTnbyYvPeOM21KVSjMy3hBncGgm8wSE_VJBy6Za3A",
-      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXI9RjtAxWNGCKdL38kycOGfsmqjOofKH2zEJUpZNd0ubKuTP3NuJLjipMwJCehkZE"
+      "masterKey": "ciC4ORAa3d3UKLFJD_hHfeOQm1kYbeRbhiRoJmjcFDA",
+      "authKey": "KRZDm00PQLdKRYvmAfvEfWTAlWgDbugvxcIWNisMZOk",
+      "kek": "qBIzUb0GrMOHCRFW2HSPe-ak-HHUCE-_duwSKjzuzE8",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXR45Ff8ewh9fAcivDEHZiRXxVrFUu03XgOa4VY1i93sBzbXZlfKkz1mZ5zc4AP_7S"
     },
     {
       "name": "accents, decomposed",
@@ -67,14 +52,14 @@
       "salt": "AAECAwQFBgcICQoLDA0ODw",
       "params": {
         "alg": "argon2id",
-        "m": 65536,
+        "m": 131072,
         "t": 3,
         "p": 1
       },
-      "masterKey": "XxRr_0aY3LTYFHzkhnvl6LeJyReEiJaEOv1IUBRl7qs",
-      "authKey": "J4W20rIXLgD0ZoCz-khW6Ei9riF5wdlZN-d6rpRSJ6Y",
-      "kek": "MGRTnbyYvPeOM21KVSjMy3hBncGgm8wSE_VJBy6Za3A",
-      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXI9RjtAxWNGCKdL38kycOGfsmqjOofKH2zEJUpZNd0ubKuTP3NuJLjipMwJCehkZE"
+      "masterKey": "ciC4ORAa3d3UKLFJD_hHfeOQm1kYbeRbhiRoJmjcFDA",
+      "authKey": "KRZDm00PQLdKRYvmAfvEfWTAlWgDbugvxcIWNisMZOk",
+      "kek": "qBIzUb0GrMOHCRFW2HSPe-ak-HHUCE-_duwSKjzuzE8",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXR45Ff8ewh9fAcivDEHZiRXxVrFUu03XgOa4VY1i93sBzbXZlfKkz1mZ5zc4AP_7S"
     },
     {
       "name": "a compatibility ligature",
@@ -82,14 +67,14 @@
       "salt": "AAECAwQFBgcICQoLDA0ODw",
       "params": {
         "alg": "argon2id",
-        "m": 65536,
+        "m": 131072,
         "t": 3,
         "p": 1
       },
-      "masterKey": "Hdi8wTIFoZ-F2ZBFsMyeC0Lr0e2G8VTeeqh2uQ0T-BU",
-      "authKey": "IfAAIcUTwxLctZpOg4UgCVmFmht0k_NUSeMLToWDf28",
-      "kek": "JDt4EzlGUxCDotR-uE0ndw2kputpFkLgO6ZiBAd8UGU",
-      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXLmy_UH9BmWSl-iBKW40HmEe4vht6myYG2_wfM5jh_hJ-5BCCrPgVfmB2uXYSzw4-"
+      "masterKey": "d355bs3n2FwwuHoWmcKj3bkTlvaepe8UCoY13KrxoXs",
+      "authKey": "Oc_SvdK2ZAiFHDq3E1pDqDZsGwrZJLVMFxlSJ_yeMwI",
+      "kek": "H5s2Y2Ub8ilrRJqlEzFrW6ouyiu3FzV9Z50YoLzf1WM",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX9MJt1azZ1qJKccso3NCLxITRSMdVb6pwn4i4iH5P5_dHHEIqCTUBMuJezsQpmxfQ"
     },
     {
       "name": "what that ligature normalises to",
@@ -97,14 +82,14 @@
       "salt": "AAECAwQFBgcICQoLDA0ODw",
       "params": {
         "alg": "argon2id",
-        "m": 65536,
+        "m": 131072,
         "t": 3,
         "p": 1
       },
-      "masterKey": "Hdi8wTIFoZ-F2ZBFsMyeC0Lr0e2G8VTeeqh2uQ0T-BU",
-      "authKey": "IfAAIcUTwxLctZpOg4UgCVmFmht0k_NUSeMLToWDf28",
-      "kek": "JDt4EzlGUxCDotR-uE0ndw2kputpFkLgO6ZiBAd8UGU",
-      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXLmy_UH9BmWSl-iBKW40HmEe4vht6myYG2_wfM5jh_hJ-5BCCrPgVfmB2uXYSzw4-"
+      "masterKey": "d355bs3n2FwwuHoWmcKj3bkTlvaepe8UCoY13KrxoXs",
+      "authKey": "Oc_SvdK2ZAiFHDq3E1pDqDZsGwrZJLVMFxlSJ_yeMwI",
+      "kek": "H5s2Y2Ub8ilrRJqlEzFrW6ouyiu3FzV9Z50YoLzf1WM",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX9MJt1azZ1qJKccso3NCLxITRSMdVb6pwn4i4iH5P5_dHHEIqCTUBMuJezsQpmxfQ"
     },
     {
       "name": "emoji and other scripts",
@@ -112,34 +97,40 @@
       "salt": "AAECAwQFBgcICQoLDA0ODw",
       "params": {
         "alg": "argon2id",
-        "m": 65536,
+        "m": 131072,
         "t": 3,
         "p": 1
       },
-      "masterKey": "pCRjGpTlLw-rNAT8xH5aPyYiuAabMqeijKnin4RVBYE",
-      "authKey": "TBv6O61Ep4pDyBwQmEeBnBA3jDpXdQ7uiQ1fRVinSk4",
-      "kek": "yEyKeUZUJ24c8who6PEuOh4pWf3rl6cqjnNvb5KzOZw",
-      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX3gzxrd2UiQCtXIqi5HawhEcgGG2diZO72_BJda75UTzwGXKP8GBSFq6OBnhTb12v"
+      "masterKey": "vVm_eXfNypPJmuBhdddW46nK1VL8CX-Y1hoIdnMTqBo",
+      "authKey": "ygEoQAEhSJLRnmiaX-Yvz1Pu7LIw7EMLYqI_LyBRhL8",
+      "kek": "MkNqucL6t87MJlQ9wtLq1vHY_C4A-gYEufQvonQWLo8",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX8ORG0EoFEMUbZiQRhoEa3z7eGpAqrjUqIWa_rCqIO_3jl2s4HQ08YT0phTzF-XY7"
     }
   ],
   "refusedParams": [
     {
       "alg": "argon2id",
-      "m": 19455,
+      "m": 65535,
+      "t": 3,
+      "p": 1
+    },
+    {
+      "alg": "argon2id",
+      "m": 65536,
       "t": 2,
       "p": 1
     },
     {
       "alg": "argon2id",
-      "m": 19456,
-      "t": 1,
-      "p": 1
-    },
-    {
-      "alg": "argon2id",
-      "m": 19456,
-      "t": 2,
+      "m": 65536,
+      "t": 3,
       "p": 0
+    },
+    {
+      "alg": "argon2id",
+      "m": 19456,
+      "t": 2,
+      "p": 1
     },
     {
       "alg": "argon2id",
@@ -150,20 +141,20 @@
     {
       "alg": "argon2id",
       "m": 262145,
-      "t": 2,
+      "t": 3,
       "p": 1
     },
     {
       "alg": "argon2id",
-      "m": 19456,
+      "m": 65536,
       "t": 17,
       "p": 1
     },
     {
       "alg": "argon2id",
-      "m": 19456,
-      "t": 2,
-      "p": 5
+      "m": 65536,
+      "t": 3,
+      "p": 2
     }
   ],
   "wrap": {
@@ -219,6 +210,12 @@
         "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
         "json": "{\"v\":1,\"seq\":1,\"name\":\"\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"tags\":[],\"createdAt\":\"\",\"updatedAt\":\"\",\"conflictOf\":null,\"androidPackages\":[\"com.example.app\"]}",
         "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5ZqSeK0GKm5HiC0eV_3I6XOaUpuuFGLHiV95bwRmZWZNgDVun6NmGb0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65dVRB6X4gAIw8qUimlqq-sI"
+      },
+      {
+        "name": "a deletion",
+        "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "json": "{\"v\":1,\"seq\":43,\"name\":\"\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"tags\":[],\"createdAt\":\"\",\"updatedAt\":\"2026-11-01T00:00:00Z\",\"conflictOf\":null,\"deleted\":true}",
+        "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vFvweYxJsNT29V8Cnvk2nJiUTLwoc5NEVwLIY2A3LzHp6517drE_c2IfS38wwbecnmDB6I9HOaMP4cN7fbN6bk9WhNzjPIIxzI7RHTM9Gr8DHgn_3Bn5NDek6FEoSIh_VSRi4HnGlghmjEJ57DMbcyDFwpvduYbqO-9AO25AihEWV-Lm6DTTHtSZWi2KgBRwchFucSgS2iZrivy7ZD0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65RGd52gmdmQA3ro1HvxHlb8"
       }
     ]
   },
