@@ -1,5 +1,5 @@
-import { configureApiForTauri } from "../api/axios.interceptor";
-import { checkConnection, type ConnectionCheck } from "./connection-check";
+import api, { configureApiForTauri } from "../api/axios.interceptor";
+import { checkConnection, hostOf, type ConnectionCheck } from "./connection-check";
 import { withRequestSignal } from "./with-request-signal";
 
 export type ApiConfig = {
@@ -33,6 +33,10 @@ export const testApiConfig = async (
   const { fetch } = await import("@tauri-apps/plugin-http");
   return checkConnection(config, fetch);
 };
+
+/** The host the app is set to talk to, once its settings are applied. */
+export const currentServerHost = (): string | null =>
+  hostOf(api.defaults.baseURL ?? "");
 
 export const applyApiConfig = async (config: ApiConfig): Promise<void> => {
   const { fetch } = await import("@tauri-apps/plugin-http");
