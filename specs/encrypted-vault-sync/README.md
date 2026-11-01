@@ -21,24 +21,24 @@ server, and syncs when it can. Android can fill passwords into other apps.
 
 | # | Spec | Depends on | Status |
 |---|------|-----------|--------|
-| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | PR #31 open, and its APK installs and works. Left: the screenshot and lock checks, public hostname, merge, tag |
-| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | All three commits and spike S3 done. The test app for S1 and S2 is written, not yet built. It and the review are left |
+| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | PR #31 merged, and a release APK builds. A fix from the security review isn't committed. Left: its checks, the screenshot and lock checks, public hostname, tag |
+| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | Commits, spikes, review and its fixes done, not committed. Waiting on you: read the table and accept it, which freezes the format |
 | 2 | [Backend: encrypted vault API](./spec-2-backend-vault-api.md) | Spec 1 | Not started |
 | 3 | [Clients: encrypt on the device](./spec-3-clients.md) | Specs 1, 2 | Not started |
 | 4 | [Migrating the real vault](./spec-4-migration.md) | Spec 3 | Not started |
-| 5 | [On-device copy, read-only offline, fingerprint unlock](./spec-5-on-device-vault.md) | Spec 4 | Not started |
+| 5 | [On-device copy, read-only offline](./spec-5-on-device-vault.md) | Spec 4 | Not started |
 | 6 | [Offline edits and sync](./spec-6-offline-sync.md) | Spec 5 | Not started |
 | 7 | [Android autofill](./spec-7-autofill.md) | Spec 5 | Not started |
 
 The plan's four steps map on like this: client-side encryption is Specs 1–4,
 the on-device copy is Spec 5, offline edits are Spec 6, autofill is Spec 7.
 
-**Last stopped:** 2026-11-01. PR #31's APK works on the phone over the LAN. Spec 0 still needs
-the screenshot and lock checks, the public hostname, then merge and tag. The test app for
-spikes S1 and S2 is uncommitted in a git worktree, `../cereberus-spike`, on branch
-`spike/android-crypto`. Its Rust compiles for Android, but CI will be the first to compile
-its Kotlin. After the spikes comes the review gate, and only then can Spec 2 start. The
-format isn't frozen until that review is done.
+**Last stopped:** 2026-11-01. Spec 0 is merged, and still needs the screenshot and lock checks,
+the public hostname, then the tag. Spikes S1 and S3 passed on the phone, so the format doesn't
+need to change. The test app is on branch `spike/android-crypto`, and must never be merged.
+The crypto review is done, and its fixes are uncommitted, including a format change (deletes
+are now encrypted tombstones) and a higher Argon2id cost. Spec 2 can start once you've read
+Spec 1's table and accepted it, which freezes the format.
 
 ## How to pick this up
 
@@ -75,6 +75,8 @@ user's; Claude can't do them.
 - **No master password and no recovery key means the vault is gone.** The server
   can't help, by design. Setup makes you save a recovery key.
 - **Sync never silently drops a version.** See Spec 6.
+- **No fingerprint unlock.** You don't want it, so the master password is the only way in.
+  *(user, 2026-11-01)*
 - **APKs reach the phone through GitHub,** not over USB, so nothing depends on being
   plugged into this machine. You install them and report what you see, so test builds show
   their results on screen. *(user, 2026-11-01)*
@@ -94,6 +96,7 @@ Each has a default that applies unless you change it.
 | Q4 | Which passwords get rotated after the migration? Everything revealed through the tunnel so far has been readable by Cloudflare, and old backups keep readable copies for up to 12 months (Spec 4) | Rotate the high-value ones: email, banking, anything that resets other accounts | End of Spec 4 |
 | Q5 | Block screenshots and recent-apps thumbnails on Android (`FLAG_SECURE`)? | On since Spec 0. Spec 5 adds a Settings toggle to allow screenshots | Spec 5 |
 | Q6 | How long before the app locks itself? | 5 minutes in the background, since Spec 0 | Spec 5 |
+| Q7 | Build vault key rotation? Changing the master password or recovery key doesn't stop an old backup plus the old secret opening the vault, including entries written since (Spec 1's table). Rotation re-encrypts everything under a new key, in batches, with the same format | Not until after Spec 6, then offer it after a suspected compromise | After Spec 6 |
 
 ## Shared notes
 
