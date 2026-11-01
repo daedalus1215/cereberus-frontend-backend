@@ -157,13 +157,14 @@ An APK can only be built in CI, so S1 and S2 go in one APK, with a bare debug sc
 `tauri-android-build.yml` builds pull requests, so a draft PR from this branch gets an
 APK without waiting for Spec 0's merge. It needs the signing secrets set.
 
-The phone is plugged in with USB debugging on, so Claude installs the artifact and reads
-`adb logcat`. S1's service is started with `am` after force-stopping the app, so
-`MainActivity` isn't running. S2 still needs you, for the fingerprint prompts and for
-enrolling a new fingerprint.
+You install the APK from GitHub and report what you see, with the phone not plugged in
+(see the README). So the screen has to show every result itself, including why the last
+run crashed. S1's service starts from a notification button, so it can run after you've
+swiped the app away. S2 also needs you for the fingerprint prompts and for enrolling a new
+fingerprint.
 
 A debug APK compiles Rust unoptimised, because `src-tauri/Cargo.toml` sets no profile.
-The spike needs the override Spec 3 adds, and logs one `derive_keys` timing, to confirm
+The spike needs the override Spec 3 adds, and shows one `derive_keys` timing, to confirm
 S3 inside the app.
 
 - [ ] **S1: Rust from a Kotlin service.** A small Android `Service` calls a JNI
@@ -205,7 +206,8 @@ S3 inside the app.
 
   The same run passed all 8 key derivation vectors, 6 entry vectors and 11 failure cases
   in Brave, and the crate's 69 tests on the phone's CPU (with musl, not the app's bionic).
-- [ ] **(you)** Push the branch and open a draft PR. Claude installs and runs it.
+- [ ] **(you)** Push the branch, open a draft PR, install the APK from its run, and report
+  what the screen says.
 
 ### Commit 3 — `feat(vault-core): compile to WebAssembly`
 
