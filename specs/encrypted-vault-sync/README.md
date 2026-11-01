@@ -21,8 +21,8 @@ server, and syncs when it can. Android can fill passwords into other apps.
 
 | # | Spec | Depends on | Status |
 |---|------|-----------|--------|
-| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | PR #31 open, and its APK installs and works. New logo size and phone protections waiting to be committed. Left: last phone checks, public hostname, merge, tag |
-| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | All three commits and spike S3 done. Spikes S1 and S2 and the review are left |
+| 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | PR #31 open, and its APK installs and works. Left: the screenshot and lock checks, public hostname, merge, tag |
+| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | All three commits and spike S3 done. The test app for S1 and S2 is written, not yet built. It and the review are left |
 | 2 | [Backend: encrypted vault API](./spec-2-backend-vault-api.md) | Spec 1 | Not started |
 | 3 | [Clients: encrypt on the device](./spec-3-clients.md) | Specs 1, 2 | Not started |
 | 4 | [Migrating the real vault](./spec-4-migration.md) | Spec 3 | Not started |
@@ -33,10 +33,12 @@ server, and syncs when it can. Android can fill passwords into other apps.
 The plan's four steps map on like this: client-side encryption is Specs 1–4,
 the on-device copy is Spec 5, offline edits are Spec 6, autofill is Spec 7.
 
-**Last stopped:** 2026-11-01. PR #31's APK works on the phone over the LAN. The 16 KB fix, the
-smaller logo and the phone protections (Spec 0's Commits 2 to 4) are done but not committed.
-After that: Spec 0's last checks, merge and tag, then spikes S1 and S2, then the review gate,
-and only then can Spec 2 start. The format isn't frozen until that review is done.
+**Last stopped:** 2026-11-01. PR #31's APK works on the phone over the LAN. Spec 0 still needs
+the screenshot and lock checks, the public hostname, then merge and tag. The test app for
+spikes S1 and S2 is uncommitted in a git worktree, `../cereberus-spike`, on branch
+`spike/android-crypto`. Its Rust compiles for Android, but CI will be the first to compile
+its Kotlin. After the spikes comes the review gate, and only then can Spec 2 start. The
+format isn't frozen until that review is done.
 
 ## How to pick this up
 
