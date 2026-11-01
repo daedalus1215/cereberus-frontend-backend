@@ -3,6 +3,7 @@ package com.cereberus.app
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
@@ -10,6 +11,9 @@ import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : TauriActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
+    // Keeps passwords out of screenshots, screen recordings and the recent-apps
+    // thumbnail.
+    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
     // Light icons over the dark window background (themes.xml), whatever the
     // phone's own theme: Cereberus is always dark.
     enableEdgeToEdge(
