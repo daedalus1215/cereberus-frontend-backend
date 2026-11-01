@@ -23,9 +23,13 @@ const logo = readFileSync(join(__dirname, '..', 'public', 'cerberus.svg'), 'utf8
 const logoPaths = logo.match(/<path[\s\S]*?\/>/g).join('');
 
 // The logo's 1024-unit canvas is centred on (512, 512), and nothing in it
-// reaches further than 448 units from there. This keeps that inside the 66dp
-// circle, with a sliver to spare.
-const LOGO_SCALE = 32 / 448;
+// reaches further than 448 units from there. It could fill the 66dp circle, but
+// that crowds the tile, so this matches the size of the marks on our other apps.
+const LOGO_SCALE = 27 / 448;
+
+// At that size the logo's thinner lines get faint, so they're thickened a little.
+// In the units of its paths, which are tenths of the canvas's.
+const LOGO_STROKE = 30;
 
 // The app's dark background (src/main.tsx), lifted a little at the top left.
 const TILE_STOPS = [
@@ -43,7 +47,7 @@ const tileGradient = `<linearGradient id="tile" gradientUnits="userSpaceOnUse" x
 /** The logo's own transform flips potrace's y-up coordinates. */
 const mark = (color) =>
   `<g transform="translate(54 54) scale(${LOGO_SCALE}) translate(-512 -512)">` +
-  `<g transform="translate(0,1024) scale(0.1,-0.1)" fill="${color}">${logoPaths}</g></g>`;
+  `<g transform="translate(0,1024) scale(0.1,-0.1)" fill="${color}" stroke="${color}" stroke-width="${LOGO_STROKE}" stroke-linejoin="round">${logoPaths}</g></g>`;
 
 const background = `<defs>${tileGradient}</defs><rect width="108" height="108" fill="url(#tile)"/>`;
 
