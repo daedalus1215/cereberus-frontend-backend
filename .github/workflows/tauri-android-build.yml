@@ -1,0 +1,110 @@
+name: Android (Tauri) debug build
+
+# Checks that pull requests still build for Android. The APK it uploads is the
+# debug app (com.cereberus.app.debug), which installs beside the release app,
+# for trying a branch on a phone. Run workflow builds one from any branch.
+# Releases come from tauri-android-release.yml.
+on:
+  pull_request:
+    paths: ['frontend/**', '.github/workflows/tauri-android-build.yml']
+  workflow_dispatch:
+
+# A newer run on the same branch makes a running build moot; cancel it so it
+# doesn't use minutes or report a failure that's already been fixed.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NDK_VERSION: 27.3.13750724
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      # Each fresh runner signs debug builds with a new key, and Android
+      # won't install an update signed with a different key without
+      # uninstalling first, which wipes what the app stores on the phone (its
+      # server settings). So every build must use the fixed key from this
+      # secret, which app/build.gradle.kts signs with when it finds it. This
+      # runs first so a missing one fails in seconds.
+      - name: Restore the debug signing key
+        env:
+          DEBUG_KEYSTORE: ${{ secrets.ANDROID_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$DEBUG_KEYSTORE" ]; then
+            echo "::error::The ANDROID_DEBUG_KEYSTORE_BASE64 secret is missing. Without it the APK gets a throwaway signing key and can't be installed over the existing app."
+            exit 1
+          fi
+          echo "$DEBUG_KEYSTORE" | base64 -d > src-tauri/gen/android/ci-debug.keystore
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      # The default package list includes "tools", which Google has removed,
+      # so name the packages explicitly. Gradle fetches the platform and
+      # build tools it needs on its own.
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: ndk;${{ env.NDK_VERSION }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: frontend/src-tauri -> target
+
+      - run: npm ci
+
+      # Debug-signed so it installs without a release keystore; arm64 covers
+      # current phones. The server address and Cloudflare Access token are
+      # entered in the app on first launch; the ANDROID_SERVER_URL repository
+      # variable only prefills the address.
+      - name: Build the debug APK
+        env:
+          VITE_DEFAULT_SERVER_URL: ${{ vars.ANDROID_SERVER_URL }}
+        run: |
+          export NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION"
+          npx tauri android build --debug --apk --target aarch64
+
+      # Gradle quietly signs with a throwaway key when it doesn't pick up the
+      # fixed one (as it did with ~/.android/debug.keystore), and that APK
+      # won't install over the existing app.
+      - name: Check the APK is signed with the fixed key
+        run: |
+          expected=$(keytool -list -v -keystore src-tauri/gen/android/ci-debug.keystore \
+            -storepass android -alias androiddebugkey \
+            | sed -n 's/^.*SHA256: //p' | tr -d ':' | tr 'A-F' 'a-f')
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+          if [ -z "$expected" ] || [ ! -x "$apksigner" ]; then
+            echo "::error::Couldn't read the fixed key's fingerprint or find apksigner."
+            exit 1
+          fi
+          for apk in src-tauri/gen/android/app/build/outputs/apk/*/debug/*.apk; do
+            if ! "$apksigner" verify --print-certs "$apk" | grep -q "SHA-256 digest: $expected"; then
+              echo "::error::$apk isn't signed with the fixed debug key."
+              exit 1
+            fi
+          done
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: cereberus-android-debug-apk
+          path: frontend/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error

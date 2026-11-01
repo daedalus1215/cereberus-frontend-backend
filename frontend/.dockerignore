@@ -5,3 +5,7 @@ dist
 .env.*
 !.env.example
 *.sqlite
+src-tauri
+vault-core/target
+vault-core-wasm/target
+vault-core-wasm/pkg

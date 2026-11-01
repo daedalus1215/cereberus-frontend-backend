@@ -5,6 +5,7 @@ import Button from "@mui/material/Button";
 import { useAuth } from "@/auth/useAuth";
 import { ChangeUsernameForm } from "./components/ChangeUsernameForm";
 import { ChangePasswordForm } from "./components/ChangePasswordForm";
+import { ConnectionSettings } from "./components/ConnectionSettings";
 
 export const SettingsPage = () => {
   const { logout } = useAuth();
@@ -28,6 +29,7 @@ export const SettingsPage = () => {
         <Box sx={{ pb: 4 }}>
           <ChangeUsernameForm />
           <ChangePasswordForm />
+          <ConnectionSettings />
         </Box>
         <Box sx={{ pt: 2, pb: 8, borderTop: 1, borderColor: "divider" }}>
           <Button

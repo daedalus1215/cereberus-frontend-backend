@@ -1,0 +1,293 @@
+{
+  "comment": "From testdata/generate-vectors.mjs, a second implementation. Don't edit by hand.",
+  "kdf": [
+    {
+      "name": "plain text",
+      "password": "correct horse battery staple",
+      "salt": "AAECAwQFBgcICQoLDA0ODw",
+      "params": {
+        "alg": "argon2id",
+        "m": 65536,
+        "t": 3,
+        "p": 1
+      },
+      "masterKey": "DRo8ZSPI8G5OCvnFFapbVEjP69aDjy1Sw9i2743cPC4",
+      "authKey": "ZmNSZhWsPrwzGeuIFm6ZKSlZJ-pKw0LSup66SxRGmFI",
+      "kek": "cWUdeHZ4m_dGVcfx5EgCP7fwmSoICZDe3FlLK6dlftk",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXQC1ZEGBudn7Z8cYdAhkjh-PcaJbclocNv6EcmvQ0BVhiViQhWl3wHyy5lhzb2r96"
+    },
+    {
+      "name": "the cheapest parameters allowed",
+      "password": "correct horse battery staple",
+      "salt": "AAECAwQFBgcICQoLDA0ODw",
+      "params": {
+        "alg": "argon2id",
+        "m": 19456,
+        "t": 2,
+        "p": 1
+      },
+      "masterKey": "gYJZtjEAJqjg26xdLmknq8_bB7MiWPrE9hsYuA-SkIU",
+      "authKey": "TgRNsNwo5RpP8RPgwK4HUcPZnVQjupgCm-fJ4S5qJgc",
+      "kek": "QQg_Bf1TZQCBnGrr1upQkuM-gzFUaYmlFnBl53D8oxk",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXgHbUbwTnJ6HrdSUZQkl4-QByfHv3Lp3ORmwRF-zHYc_AjzSYDZ0kiD2t4aAFarWs"
+    },
+    {
+      "name": "two lanes",
+      "password": "correct horse battery staple",
+      "salt": "AAECAwQFBgcICQoLDA0ODw",
+      "params": {
+        "alg": "argon2id",
+        "m": 19456,
+        "t": 2,
+        "p": 2
+      },
+      "masterKey": "2H9CJBMC_n10v6zYZskkV6SWmeilDRmsi0YnOyxYGpA",
+      "authKey": "dO3cgJd-efb-mEqiIOdHP3LwAzYCDCOppoGakUzEZCg",
+      "kek": "0dS_UxImfRAOkJRW1ST3P_n33D0VEXnnlnpIIdwCZsA",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXqa_wJ8uT_pBAR41BLiCnGJU3FGpnOHLCaDrnpWRRtPMeEqMqLX2aV_fCe6Hgyfbp"
+    },
+    {
+      "name": "accents, precomposed",
+      "password": "café päss",
+      "salt": "AAECAwQFBgcICQoLDA0ODw",
+      "params": {
+        "alg": "argon2id",
+        "m": 65536,
+        "t": 3,
+        "p": 1
+      },
+      "masterKey": "XxRr_0aY3LTYFHzkhnvl6LeJyReEiJaEOv1IUBRl7qs",
+      "authKey": "J4W20rIXLgD0ZoCz-khW6Ei9riF5wdlZN-d6rpRSJ6Y",
+      "kek": "MGRTnbyYvPeOM21KVSjMy3hBncGgm8wSE_VJBy6Za3A",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXI9RjtAxWNGCKdL38kycOGfsmqjOofKH2zEJUpZNd0ubKuTP3NuJLjipMwJCehkZE"
+    },
+    {
+      "name": "accents, decomposed",
+      "password": "café päss",
+      "salt": "AAECAwQFBgcICQoLDA0ODw",
+      "params": {
+        "alg": "argon2id",
+        "m": 65536,
+        "t": 3,
+        "p": 1
+      },
+      "masterKey": "XxRr_0aY3LTYFHzkhnvl6LeJyReEiJaEOv1IUBRl7qs",
+      "authKey": "J4W20rIXLgD0ZoCz-khW6Ei9riF5wdlZN-d6rpRSJ6Y",
+      "kek": "MGRTnbyYvPeOM21KVSjMy3hBncGgm8wSE_VJBy6Za3A",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXI9RjtAxWNGCKdL38kycOGfsmqjOofKH2zEJUpZNd0ubKuTP3NuJLjipMwJCehkZE"
+    },
+    {
+      "name": "a compatibility ligature",
+      "password": "ﬁsh",
+      "salt": "AAECAwQFBgcICQoLDA0ODw",
+      "params": {
+        "alg": "argon2id",
+        "m": 65536,
+        "t": 3,
+        "p": 1
+      },
+      "masterKey": "Hdi8wTIFoZ-F2ZBFsMyeC0Lr0e2G8VTeeqh2uQ0T-BU",
+      "authKey": "IfAAIcUTwxLctZpOg4UgCVmFmht0k_NUSeMLToWDf28",
+      "kek": "JDt4EzlGUxCDotR-uE0ndw2kputpFkLgO6ZiBAd8UGU",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXLmy_UH9BmWSl-iBKW40HmEe4vht6myYG2_wfM5jh_hJ-5BCCrPgVfmB2uXYSzw4-"
+    },
+    {
+      "name": "what that ligature normalises to",
+      "password": "fish",
+      "salt": "AAECAwQFBgcICQoLDA0ODw",
+      "params": {
+        "alg": "argon2id",
+        "m": 65536,
+        "t": 3,
+        "p": 1
+      },
+      "masterKey": "Hdi8wTIFoZ-F2ZBFsMyeC0Lr0e2G8VTeeqh2uQ0T-BU",
+      "authKey": "IfAAIcUTwxLctZpOg4UgCVmFmht0k_NUSeMLToWDf28",
+      "kek": "JDt4EzlGUxCDotR-uE0ndw2kputpFkLgO6ZiBAd8UGU",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXLmy_UH9BmWSl-iBKW40HmEe4vht6myYG2_wfM5jh_hJ-5BCCrPgVfmB2uXYSzw4-"
+    },
+    {
+      "name": "emoji and other scripts",
+      "password": "пароль 🔑 密码",
+      "salt": "AAECAwQFBgcICQoLDA0ODw",
+      "params": {
+        "alg": "argon2id",
+        "m": 65536,
+        "t": 3,
+        "p": 1
+      },
+      "masterKey": "pCRjGpTlLw-rNAT8xH5aPyYiuAabMqeijKnin4RVBYE",
+      "authKey": "TBv6O61Ep4pDyBwQmEeBnBA3jDpXdQ7uiQ1fRVinSk4",
+      "kek": "yEyKeUZUJ24c8who6PEuOh4pWf3rl6cqjnNvb5KzOZw",
+      "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX3gzxrd2UiQCtXIqi5HawhEcgGG2diZO72_BJda75UTzwGXKP8GBSFq6OBnhTb12v"
+    }
+  ],
+  "refusedParams": [
+    {
+      "alg": "argon2id",
+      "m": 19455,
+      "t": 2,
+      "p": 1
+    },
+    {
+      "alg": "argon2id",
+      "m": 19456,
+      "t": 1,
+      "p": 1
+    },
+    {
+      "alg": "argon2id",
+      "m": 19456,
+      "t": 2,
+      "p": 0
+    },
+    {
+      "alg": "argon2id",
+      "m": 8,
+      "t": 1,
+      "p": 1
+    },
+    {
+      "alg": "argon2id",
+      "m": 262145,
+      "t": 2,
+      "p": 1
+    },
+    {
+      "alg": "argon2id",
+      "m": 19456,
+      "t": 17,
+      "p": 1
+    },
+    {
+      "alg": "argon2id",
+      "m": 19456,
+      "t": 2,
+      "p": 5
+    }
+  ],
+  "wrap": {
+    "kek": "ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8",
+    "vaultKey": "QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8",
+    "nonce": "gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX",
+    "wrappedVaultKey": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX1EC03PMZgu-yvY2NB9Cb-O_MOO1EG7orrzDqMRKYkX_1ZfWFI76YDqgOAVj2Br9_"
+  },
+  "recovery": {
+    "key": "YGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn8",
+    "display": "C1GP4-RV4CN-K6ET3-9D9NP-RVBED-XR72W-KKEHT-QCXVR-F5X7P-Z3XFS-ZRP00",
+    "recoveryAuth": "xTlkn356J1cGebAdKhb0o5hrEQ5KSGw9aG39wKo0Jqc",
+    "vaultKey": "QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8",
+    "nonce": "gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX",
+    "wrappedVaultKeyRecovery": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXYf-vVucVVXlBsqNyd30i8EqdFk1rIvjJ6r9CgLq9NI4RbofqBbOlN54aJnu-UrOy"
+  },
+  "entries": {
+    "vaultKey": "QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8",
+    "nonce": "gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaX",
+    "cases": [
+      {
+        "name": "nearly empty",
+        "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "json": "{\"v\":1,\"seq\":1,\"name\":\"\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"tags\":[],\"createdAt\":\"\",\"updatedAt\":\"\",\"conflictOf\":null}",
+        "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5cswGcNiWAEu7H1_NJapjhbpcKH1NgGo5HEcF2ULFQoorlQe74E7ZD0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65WECPo-jg320QcsWtqDFXgo"
+      },
+      {
+        "name": "every field, in several scripts",
+        "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "json": "{\"v\":1,\"seq\":42,\"name\":\"Bänk 🏦\",\"username\":\"user@example.com\",\"password\":\"pa\\\"ss\\\\wo/rd\\n\\t\\u0001\",\"url\":\"https://example.com/login?a=1&b=2\",\"notes\":\"line one\\nline two\\nпароль 密码\",\"tags\":[\"work\",\"café\"],\"createdAt\":\"2026-10-30T12:00:00Z\",\"updatedAt\":\"2026-10-30T13:00:00Z\",\"conflictOf\":\"7c9e6679-7425-40de-944b-e07fc1f90ae7\"}",
+        "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vFvxeYxJsNT29V8C_hawh4DRzk3GuNRKT1WZKjApLy__vsgrZ-BgIwBWEWsv3fnDkiGCp8MEb7YdsIouMO08OBQTh5-FRaxusrHUF307G4csNl-ZiwvlJnP2oBIpX4AcGyQwtj-G1wRkkhYsvW8_L3XRkcSKptrffqoMZ2AT3VsdCaSLojSHH9WQRSOSxh11eQAremRN8jpyhu9eREl_m909anKH-5IJHeqrn4YJl-RWgFw9ErcfwUG6n76_M6rBCX73mPV5TFgDhtGlkm0VL6ZeADATWjIopAveeGAfsRhnz1ceus9tNIFLaV2dhYhoyJ4YkFApBSxTGq2EFWetggrDoKBxCq_f_nvYR3Id_YBLVsBLNa2dlZdpY8DFe1FgK8DQlpxPSHESRBCHzNOTgfBdeLKSmQr7YKZ_Cx9aDYZpQJJ5gdx_kXvSHGO-pzQTts0m-3OAMTI28NGPJUQSoD5WdprcviOTMybNeQWYcWISKFWp3OtZjL_VsJPhttTu1js-9yaFqzwj7Ieu2oNzl_1MpShDnI8OLwE5y-b8b-Jaj-YxZZKewlrXDWMC-DykTr2yjOtwEfj1q3CKMStB-7jn9ZeRIj0fWZyKvemvK3OaYMlqXMuB4ycEiOvLYJuguTYwNbOoUlwgniyJDzeLZhXnwuXbauE4n_0WvBlWzIsIJouT"
+      },
+      {
+        "name": "exactly one block before padding",
+        "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "json": "{\"v\":1,\"seq\":1,\"name\":\"\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn\",\"tags\":[],\"createdAt\":\"\",\"updatedAt\":\"\",\"conflictOf\":null}",
+        "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-ds3MfE2dEBfmZC3CbFzgIPNFjwnEbUsBEWrkFW7eCy64l4yQ4JQT2g2rCWYylAl0x06smwhLX6RnMWJ59jed60MNm9AghMRWvjH4HiHHs-bWG_Gih9yeQtle2RGwDpwge9VClNmmu891KM5JS3nozoVSjnr2W-XaNXz_ftdjRf32rn8boLBRErY3_U2HF4DlHdo8UQbN-cOSXMSTzIIpEyAGyYNuQxo0kVQ5pFfadoSLSLBl4Jcn95WmKBNZFg2fuzwN12PsDrxlo1AOoLszi_pdEgtzbp7ZpppGY_--vkPD6mmDx4GCfryof92LUckcymq--ehtN1pSNb3tDPPVMRSbi9ta-VYJqtJ4LlIswZSHGO-pzQTts0m-3OAMTI28NGPJUQSoD5WdprcviOTMybNeQWYcWISKFWp3OtZjL_VsJPhttTu1js-9yaFqzwj7Ieu2oNzl_1MpShDnI8OLwE5y-b8b-Jaj-YxZZKewlrXDWMC-DykTr2yjOtwEfj1q3CKMStB-7jn9ZeRIj0fWZyKvemvK3OaYMlqXMuB4ycEiOvLYJuguTYwNbOoUlwgniyJDzeLZhXnwuUchnSDsXbxxyGumEQa-eQ_"
+      },
+      {
+        "name": "one byte short of a block",
+        "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "json": "{\"v\":1,\"seq\":1,\"name\":\"\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn\",\"tags\":[],\"createdAt\":\"\",\"updatedAt\":\"\",\"conflictOf\":null}",
+        "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-ds3MfE2dEBfmZC3CbFzgIPNFjwnEbUsBEWrkFW7eCy64l4yQ4JQT2g2rCWYylAl0x06smwhLX6RnMWJ59jed60MNm9AghMRWvjH4HiHHs-bWG_Gih9yeQtle2RGwDpwge9VClNmmu891KM5JS3nozoVSjnr2W-XaNXz_ftdwRn5jKz6etPZJUyp0bQnC1oWhXZNxBIDL-cARyQXWzcdtU2lLnAVoQxm3ARc55lVbNAFFguFj9ZHht5HZSBGXvS3StoIHCn41yAa-Lg"
+      },
+      {
+        "name": "several blocks",
+        "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "json": "{\"v\":1,\"seq\":1,\"name\":\"\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn\",\"tags\":[],\"createdAt\":\"\",\"updatedAt\":\"\",\"conflictOf\":null}",
+        "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-ds3MfE2dEBfmZC3CbFzgIPNFjwnEbUsBEWrkFW7eCy64l4yQ4JQT2g2rCWYylAl0x06smwhLX6RnMWJ59jed60MNm9AghMRWvjH4HiHHs-bWG_Gih9yeQtle2RGwDpwge9VClNmmu891KM5JS3nozoVSjnr2W-XaNXz_ftdjVu1lqPzZ5-NEH_rnbk7AFUMjnxi3l5XY6tCCz8JUTgHvkeKNDxB7UAkkAld55FXa90fNwPJ29ZchNxUi04jCjZYEIKeWTPh3lSf-OMuVOyCoEGHGiZDo9QVCPQHd-GQlJdhYcfIYXBoZ5Scz5EYQylKHUfElYnP2rMHJriZ2l2hOqo8AEEDBYs2SMUnjtcm3Wg8cg3QyVp92KNIlR3uX1xYnr_hSyp8zlA4GPSy0E39XUijF2v2Hwx8RjvHsoU34tG73v2P2LqAuFVQmUjrxVJNgunAtO0d-ZMiy0Yt8uFgQW9XpYiSAYw04YhfC_zwrDS5Yw1sllLKINPc4oUef5abxR7kX0UvldaJm_n_TFNxN_Lk04fBRR30DqcEMqXvjUlq5oWlDvXO11heW93GPDJO8ELnYVnlCHuJrIvdOjoXDDgwdTFpZPsNrEEEMsNZ9E4IWbWZZ4eoWEKLoBEIgLTzKex47lhA81-NeA3qfMsAtlsxPIIn3VF4N4CTUq8Kx4puEjbk9GWpL8rZkp1hH1fQ47kaGyjHRaZOE_xBT0z3M_FUg6pUitag3nnXJdscgBQXmDSJ-fYbSVwTsSwbyO8o9QHmOH_C5OAkJ8-yJ1hN8bZ2Y8voM76toSTcv74w-VawjQmk5D82MPe1kgTwq74TYXMq9wg6VE4NYlcp2tJ9zhRaZSOMzqEsZLIKR7KgBE1VO-yqvs4VigN06lZvzHlp7g9R0shRyCAyWupIteU9GIWsBXPx6MchWRhvjMjsztsWIiiA1K1HUnCOKkdLwidBS8848BVC-BlijALxGvg8P8AdmL_ciqwL8VIMffPZxixApqu_1QZZqFxaiIVwF1fbPA147JUg2CkmfZ0CWCMz9IyC9QDBN5oTocJxN6VV-AqsEktW2-GE_ULYe5dIg46cntdj63nGxZiHCOhYT9xsCzReeJsCpBMYMWvLdh-o1zlMmwjZfXboczXJX1tQT_F8OTsWbSMkzntGev-1pPqZcadHFv09TBA_bjgNnqBlRAX_5sOrYMYPDHDv1uBNb5f5Z7-wfVRSZfRM2aGVzi-URIzGRr0oelLBxleck8tpYne3AL_up67k01M57884R9gtT1Nn5R4-L5nuu7SwYO0Z6yE5dvWr7uvu32XUYP2g9N_CG3wQ-sIicR5_jlu32yy_kK7AxiUN_0VPysDoRLmqieYB5ICdXgt5Ms8bipz3eeFcwsmvGwXag4XulQJwzXqPxjFWCYMbXbAu6-plVHF-CnYXs6I5O_WdUEMEKobXQA6LuEoLHoFGPt6H6N_f62kYG8uAhXuVfOiXQjHPyHDEwWjNuelDWDTB-KL6oErTzJXtiTDctrRgorY6NaKJN4qyDcn6hM7u6zAS0rcHZWWWG61VhV69AvgSMui2gcW4VywgotMJEy8Z0_koTA5f6tHunjoPvcj8j-HTvtYKvLBwmy7oR5UbROSKfSuE"
+      },
+      {
+        "name": "a field from a newer version",
+        "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "json": "{\"v\":1,\"seq\":1,\"name\":\"\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"tags\":[],\"createdAt\":\"\",\"updatedAt\":\"\",\"conflictOf\":null,\"androidPackages\":[\"com.example.app\"]}",
+        "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5ZqSeK0GKm5HiC0eV_3I6XOaUpuuFGLHiV95bwRmZWZNgDVun6NmGb0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65dVRB6X4gAIw8qUimlqq-sI"
+      }
+    ]
+  },
+  "mustFail": [
+    {
+      "name": "a changed ciphertext",
+      "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5cswGcNiWAEu7H1_NJapjhbpcKH1NgGo5HEcF2ULFQoorlQe74E7ZD0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65WECPo-jg320QcsWtqDFXgs",
+      "error": "DecryptionFailed"
+    },
+    {
+      "name": "another entry's id",
+      "itemId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5cswGcNiWAEu7H1_NJapjhbpcKH1NgGo5HEcF2ULFQoorlQe74E7ZD0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65WECPo-jg320QcsWtqDFXgo",
+      "error": "DecryptionFailed"
+    },
+    {
+      "name": "another vault's key",
+      "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXwyQ1kJXn4NBnuH_7NBDliD8J0plHJkJ8rAr6rIarYpu8MPpCUCUPmJNv4b4QdXkv8JyPl9jm9ehzxUQIkyQvTV7evU9vLN7rS_crLzKNNBaNx_RCdjiVg4CuAXgtilRYCRBo1RHUaGZ_xAnSDmp6QM-20_iIkzmNdcDrBywyAVpjCP18soopm2Ll0R3uIXnpE71Tu8-vAxwYA8qm-6MlODI5hNQi09yixcBcQp_gbsM8vmiKQneM3A52tWX3_nZIo7SMuFZ5SAXSQlKbrT830AD0-c1uEGEEIL41MBTaRDUdLjB_nOr6clW2zh_8Y02Jv6sL7AxRFVXQHLZ3aAc8jErWLiMWdKUv_TqSyhROxs8",
+      "error": "DecryptionFailed"
+    },
+    {
+      "name": "an unknown format",
+      "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "ciphertext": "cv2.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5cswGcNiWAEu7H1_NJapjhbpcKH1NgGo5HEcF2ULFQoorlQe74E7ZD0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65WECPo-jg320QcsWtqDFXgo",
+      "error": "UnsupportedFormat"
+    },
+    {
+      "name": "no format at all",
+      "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "ciphertext": "gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5cswGcNiWAEu7H1_NJapjhbpcKH1NgGo5HEcF2ULFQoorlQe74E7ZD0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65WECPo-jg320QcsWtqDFXgo",
+      "error": "UnsupportedFormat"
+    },
+    {
+      "name": "an id in the wrong case",
+      "itemId": "0F8FAD5B-D9CB-469F-A165-70867728950E",
+      "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5cswGcNiWAEu7H1_NJapjhbpcKH1NgGo5HEcF2ULFQoorlQe74E7ZD0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65WECPo-jg320QcsWtqDFXgo",
+      "error": "InvalidItemId"
+    },
+    {
+      "name": "truncated below the nonce and tag",
+      "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "ciphertext": "cv1.AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUm",
+      "error": "MalformedCiphertext"
+    },
+    {
+      "name": "no padding at all",
+      "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5cvjwl5n48UUyXtpDufY9uEg",
+      "error": "InvalidEntry"
+    },
+    {
+      "name": "padding of the wrong length",
+      "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTImPTHt84BtMKknc2wRHHguj6-Enm7PpI5cKLVe-dt7c70se0lC1cSCOvM_jZ_GGSYsG5o2SBHn3Bf3YzKw7UQ5Sa1KAzx64GfUx1El2x89v3YAJTLFnN6L5csw2GXgjg4EPukFu4WQiSqgDQ",
+      "error": "InvalidEntry"
+    },
+    {
+      "name": "a missing password",
+      "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oDdVZZ6Y07vF7vd8BGvNyx7UcCkPdhmo6DULMke9RcTwLGbTc1ImCgvtAlMP1qJSVASzBgj7mEyCOKucMSFptQ4ZorOv4sf0pwg9zjRf0xzJjTHDM9Gr8DHgn_3Bn5NCG74lYwRI9KbmB6-CWDyFI2PXNU3AJPQxD_8qvnibawGcNiWAEu7H1_NJapjhbpcKH1NgGo5HEcF2ULFQoorlQe74E7ZD0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65felGUF9cxeag9X1x4nNvWk",
+      "error": "InvalidEntry"
+    },
+    {
+      "name": "a newer entry version",
+      "itemId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "ciphertext": "cv1.gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXeYEA2_oAdVZZ45F88geqO8lptM6x7RFSybBpaevxPtJJHvZmbSDqT0JHTkKanPIJEpMFUUAzaQpCrZWmvELtyuEoTcZ8w_lZX59YGi4x9_7ZZ98d7u2jeFJJf9tCaivF_jvVFkLUjDBcLew-IQZYwkv2pD5LvXNU3AJPQxD_8qvnibawGcNiWAEu7H1_NJapjhbpcKH1NgGo5HEcF2ULFQoorlQe74E7ZD0I9IFTus1XS0OJzVR7JFeFtwH5Brudk5Uz4zXb-M2dCfHjfhGF89dVbjti4BIMsDA5DcUsZVFnP1Zp0CnkWlIvgy5K_mczif85BbNxWW2ntbgy6rI65UjrEasVEkkHPzoRgF_ywEE",
+      "error": "UnsupportedEntryVersion"
+    }
+  ]
+}

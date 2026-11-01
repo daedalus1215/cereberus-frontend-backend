@@ -11,6 +11,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     plugins: [
       react(),
       VitePWA({
+        // The Tauri app (npm run build:tauri, and `tauri dev`) ships these
+        // files itself, so a service worker caching them only risks serving
+        // stale ones.
+        disable: mode === "tauri",
         registerType: "autoUpdate",
         injectRegister: "auto",
         strategies: "generateSW",

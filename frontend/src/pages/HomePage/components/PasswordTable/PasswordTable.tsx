@@ -26,6 +26,7 @@ import type {
   Column,
 } from "./types";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { copyEntryPassword } from "./copyEntryPassword";
 import { useFetchPassword } from "../../hooks/useFetchPassword";
 import { EditPasswordModal } from "./EditPasswordModal";
 import { ViewPasswordModal } from "./ViewPasswordModal";
@@ -46,6 +47,7 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<null | string>(null);
   const [copySnackbar, setCopySnackbar] = useState(false);
+  const [copyFailedSnackbar, setCopyFailedSnackbar] = useState(false);
   const [editPassword, setEditPassword] = useState<PasswordEntryResponse | null>(null);
   const [viewPassword, setViewPassword] = useState<PasswordEntryResponse | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -153,13 +155,17 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
     setCopySnackbar(false);
   };
 
-  const handleCopyPassword = async (password: string) => {
+  const handleCopyPassword = async (id: string) => {
     try {
-      await navigator.clipboard.writeText(password);
+      await copyEntryPassword(
+        id,
+        id === revealedId ? revealedPassword?.password : undefined,
+      );
       setCopySnackbar(true);
     } catch (err) {
       console.error(err)
       console.error("Failed to copy password to clipboard");
+      setCopyFailedSnackbar(true);
     }
   };
 
@@ -363,6 +369,21 @@ export const PasswordTable: React.FC<PasswordTableProps> = () => {
           sx={{ width: "100%" }}
         >
           {deleteSnackbar.message}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={copyFailedSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setCopyFailedSnackbar(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setCopyFailedSnackbar(false)}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          Couldn't copy the password
         </Alert>
       </Snackbar>
     </>

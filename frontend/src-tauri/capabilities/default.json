@@ -1,0 +1,30 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "enables the default permissions",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://*" },
+        { "url": "http://localhost:*" },
+        { "url": "http://127.0.0.1:*" },
+        { "url": "http://*" },
+        { "url": "http://*:*" }
+      ]
+    },
+    "clipboard-manager:allow-write-text",
+    "clipboard-manager:allow-write-secret",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        { "url": "https://*" },
+        { "url": "http://*" }
+      ]
+    }
+  ]
+}

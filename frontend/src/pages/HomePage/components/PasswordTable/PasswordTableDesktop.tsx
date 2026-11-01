@@ -20,7 +20,7 @@ type PasswordTableDesktopProps = {
   revealedId: string | null;
   isLoadingPassword?: boolean;
   onRevealToggle: (id: string) => void;
-  onCopyPassword: (password: string) => void;
+  onCopyPassword: (id: string) => void;
   onMenuClick: (event: React.MouseEvent<HTMLElement>, id: string) => void;
   onRowClick?: (id: string) => void;
 };

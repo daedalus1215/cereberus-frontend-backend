@@ -5,8 +5,11 @@ import {
   useState,
   useEffect,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 import api from "../api/axios.interceptor";
+import { isAccessDenied } from "../tauri/cloudflare-access";
 import { tokenStorage } from "./tokenStorage";
 
 type User = {
@@ -32,6 +35,7 @@ type JwtPayload = {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuthProvider = () => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(() => {
     const token = tokenStorage.getToken();
     if (!token || !tokenStorage.isTokenValid()) {
@@ -75,10 +79,21 @@ export const useAuthProvider = () => {
         tokenStorage.setToken(access_token);
         setUser(userData);
         return true;
-      } catch {
+      } catch (error) {
         // Log error without exposing sensitive information
         console.error("Login failed: Authentication error");
-        return false;
+        // Only Cereberus turning the credentials down is a failed login.
+        // Anything else (no connection, the server down, Cloudflare Access
+        // rejecting the app's token) is thrown for the login page to report
+        // as such.
+        if (
+          axios.isAxiosError(error) &&
+          error.response?.status === 401 &&
+          !isAccessDenied(error)
+        ) {
+          return false;
+        }
+        throw error;
       }
     },
     [],
@@ -87,7 +102,9 @@ export const useAuthProvider = () => {
   const logout = useCallback(() => {
     tokenStorage.removeToken();
     setUser(null);
-  }, []);
+    // Revealed passwords are in here too.
+    queryClient.clear();
+  }, [queryClient]);
 
   const register = useCallback(
     async (username: string, password: string): Promise<boolean> => {

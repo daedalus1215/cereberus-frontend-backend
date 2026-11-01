@@ -19,6 +19,9 @@ import {
 } from "@mui/icons-material";
 import { useFetchPassword } from "../../hooks/useFetchPassword";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { copyToClipboard } from "@/tauri/clipboard";
+import { copyEntryPassword } from "./copyEntryPassword";
+import { openUrl } from "@/tauri/open-url";
 import type { PasswordEntryResponse } from "./types";
 
 export type ViewPasswordModalProps = {
@@ -40,11 +43,13 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
     useFetchPassword(shouldFetchPassword ? password?.id || null : null);
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   useEffect(() => {
     if (open) {
       setShowPassword(false);
       setCopied(false);
+      setCopyFailed(false);
       setShouldFetchPassword(false);
     }
   }, [open]);
@@ -60,29 +65,27 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
   };
 
   const handleCopyPassword = async () => {
-    if (!shouldFetchPassword) {
-      if (password) {
-        setShouldFetchPassword(true);
-        setRevealedId(password.id);
-      }
+    if (!password) {
       return;
     }
-    if (!revealedPassword?.password) {
-      return;
-    }
+    setCopyFailed(false);
     try {
-      await navigator.clipboard.writeText(revealedPassword.password);
+      await copyEntryPassword(
+        password.id,
+        shouldFetchPassword ? revealedPassword?.password : undefined,
+      );
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error(err)
       console.error("Failed to copy password to clipboard");
+      setCopyFailed(true);
     }
   };
 
   const handleCopyField = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await copyToClipboard(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -291,10 +294,7 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                           <IconButton
                             size="small"
                             onClick={handleCopyPassword}
-                            disabled={
-                              isLoadingPassword ||
-                              (!shouldFetchPassword && !revealedPassword)
-                            }
+                            disabled={isLoadingPassword}
                           >
                             <ContentCopy fontSize="small" />
                           </IconButton>
@@ -303,6 +303,11 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                     </>
                   )}
                 </Box>
+                {copyFailed && (
+                  <Typography variant="caption" color="error">
+                    Couldn't copy the password
+                  </Typography>
+                )}
               </Box>
 
               {password.url && (
@@ -342,7 +347,7 @@ export const ViewPasswordModal: React.FC<ViewPasswordModalProps> = ({
                             textDecoration: "underline",
                             cursor: "pointer",
                           }}
-                          onClick={() => window.open(password.url, "_blank")}
+                          onClick={() => void openUrl(password.url)}
                         >
                           {password.url}
                         </Typography>

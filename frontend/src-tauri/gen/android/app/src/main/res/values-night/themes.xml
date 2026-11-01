@@ -1,0 +1,8 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.cereberus_desktop" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- The web app's background colour, behind the status and navigation bars
+             (see MainActivity). -->
+        <item name="android:windowBackground">@color/app_background</item>
+    </style>
+</resources>
