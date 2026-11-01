@@ -5,6 +5,7 @@ import {
   useState,
   useEffect,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import api from "../api/axios.interceptor";
@@ -34,6 +35,7 @@ type JwtPayload = {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuthProvider = () => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(() => {
     const token = tokenStorage.getToken();
     if (!token || !tokenStorage.isTokenValid()) {
@@ -100,7 +102,9 @@ export const useAuthProvider = () => {
   const logout = useCallback(() => {
     tokenStorage.removeToken();
     setUser(null);
-  }, []);
+    // Revealed passwords are in here too.
+    queryClient.clear();
+  }, [queryClient]);
 
   const register = useCallback(
     async (username: string, password: string): Promise<boolean> => {
