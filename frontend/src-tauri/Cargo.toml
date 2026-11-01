@@ -26,3 +26,16 @@ tauri-plugin-log = "2"
 tauri-plugin-http = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-opener = "2"
+
+# Spike only (specs/encrypted-vault-sync/spec-1-crypto-core.md). Not merged.
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"
+tauri-plugin-biometric = "=2.5.0"
+vault-core = { path = "../vault-core" }
+
+# A debug APK otherwise derives keys about 10x slower.
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3
