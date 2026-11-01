@@ -22,7 +22,7 @@ server, and syncs when it can. Android can fill passwords into other apps.
 | # | Spec | Depends on | Status |
 |---|------|-----------|--------|
 | 0 | [Ship the online-only build](./spec-0-ship-online-build.md) | — | PR #31 merged, and a release APK builds. A fix from the security review isn't committed. Left: its checks, the screenshot and lock checks, public hostname, tag |
-| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | Commits, spikes, review and its fixes done, not committed. Waiting on you: read the table and accept it, which freezes the format |
+| 1 | [Crypto design and `vault-core`](./spec-1-crypto-core.md) | Signing secrets (for the Android spikes) | Done. **Format frozen** 2026-11-01 |
 | 2 | [Backend: encrypted vault API](./spec-2-backend-vault-api.md) | Spec 1 | Not started |
 | 3 | [Clients: encrypt on the device](./spec-3-clients.md) | Specs 1, 2 | Not started |
 | 4 | [Migrating the real vault](./spec-4-migration.md) | Spec 3 | Not started |
@@ -33,12 +33,11 @@ server, and syncs when it can. Android can fill passwords into other apps.
 The plan's four steps map on like this: client-side encryption is Specs 1–4,
 the on-device copy is Spec 5, offline edits are Spec 6, autofill is Spec 7.
 
-**Last stopped:** 2026-11-01. Spec 0 is merged, and still needs the screenshot and lock checks,
-the public hostname, then the tag. Spikes S1 and S3 passed on the phone, so the format doesn't
-need to change. The test app is on branch `spike/android-crypto`, and must never be merged.
-The crypto review is done, and its fixes are uncommitted, including a format change (deletes
-are now encrypted tombstones) and a higher Argon2id cost. Spec 2 can start once you've read
-Spec 1's table and accepted it, which freezes the format.
+**Last stopped:** 2026-11-01. Spec 1 is done and the format is frozen. The review's fixes are
+pushed on `crypto` but not merged, and `v0.1.0` isn't tagged. Spec 0 still needs its phone
+checks, the public hostname, merge and tag. Spec 2 is next, and starts once `crypto` is merged
+so it doesn't end up in `v0.1.0`. The spike's branch, `spike/android-crypto`, must never be
+merged.
 
 ## How to pick this up
 
@@ -81,8 +80,8 @@ user's; Claude can't do them.
   plugged into this machine. You install them and report what you see, so test builds show
   their results on screen. *(user, 2026-11-01)*
 
-The crypto details in Spec 1 are Claude's proposal until its review gate is
-passed. After that they're frozen, because changing them means re-encrypting.
+**Format frozen 2026-11-01.** Spec 1's crypto details passed review, and you accepted what
+they leave exposed. Changing them now needs a new `cv2` format and a re-encrypting upgrade path.
 
 ## Open questions
 
