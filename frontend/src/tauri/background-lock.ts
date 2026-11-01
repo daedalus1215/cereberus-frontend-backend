@@ -18,8 +18,10 @@ export const createBackgroundTimer = (
       hiddenAt ??= now();
       return;
     }
-    if (hiddenAt !== null && now() - hiddenAt >= BACKGROUND_LOCK_MS) {
-      onExpired();
+    if (hiddenAt !== null) {
+      const away = now() - hiddenAt;
+      // Negative means the clock was set back, which shouldn't be a way past this.
+      if (away < 0 || away >= BACKGROUND_LOCK_MS) onExpired();
     }
     hiddenAt = null;
   };
