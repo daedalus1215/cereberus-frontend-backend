@@ -70,7 +70,6 @@ async function bootstrap() {
           method: req.method,
           url: req.url,
           query: req.query,
-          body: req.body,
         }),
         res: (res) => ({
           statusCode: res.statusCode,

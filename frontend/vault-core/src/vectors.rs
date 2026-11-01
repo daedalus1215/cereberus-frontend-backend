@@ -47,7 +47,7 @@ fn nonce_bytes(value: &Value) -> [u8; NONCE_LEN] {
 fn key_derivation_matches() {
     let vectors = vectors();
     let cases = vectors["kdf"].as_array().unwrap();
-    assert!(cases.len() >= 8);
+    assert!(cases.len() >= 7);
     for case in cases {
         let name = text(&case["name"]);
         let params: KdfParams = serde_json::from_value(case["params"].clone()).unwrap();

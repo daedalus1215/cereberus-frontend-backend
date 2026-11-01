@@ -39,12 +39,16 @@ pending items.
     can't happen through the tunnel. It only works on the LAN.
 - [ ] `POST /vault/migrate/start`: stores the new salt, parameters, wrapped keys and
   recovery hash, clears pending items, leaves the login alone.
+- [ ] `start` and `finalize` refuse `encryption_version = 1`, and refuse requests carrying
+  `CF-Ray` or `CF-Connecting-IP`, like the export. Otherwise a stolen session token alone
+  could overwrite a migrated account's salt and wrapped keys and clear its items.
 - [ ] `POST /vault/changes` accepts version-0 accounts once `start` has run.
 - [ ] `POST /vault/migrate/finalize { newAuthKey, expectedCount }`: checks the count,
   saves the old hash to `legacy_password_hash`, then replaces it with
-  `bcrypt(newAuthKey)` and sets `encryption_version = 1`, in one transaction.
-- [ ] After finalize, legacy `/passwords` and `/tags` endpoints return 410 for that
-  account.
+  `bcrypt(newAuthKey)`, and sets `encryption_version = 1` and `keys_changed_at`, in one
+  transaction.
+- [ ] After finalize, legacy `/passwords`, `/tags` and `PUT /users/password` return 410 for
+  that account.
 
 ### Commit 2 — `feat(frontend): migration screen`
 
@@ -59,8 +63,9 @@ pending items.
   would trick a client into sending the typed master password as a legacy login. So
   the normal login screen never does a legacy login. It only happens from the explicit
   migration screen, with its field labelled as the old password, on a LAN address, and
-  never once this install has seen version 1 for the account. The cleanup commit
-  removes the path entirely.
+  never once this install has seen version 1 for the account. "A LAN address" means the
+  literal or resolved address is private, not that the name looks local. The screen isn't
+  in the web build. The cleanup commit removes the path entirely.
 
 ### Rehearsal on dev
 

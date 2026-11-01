@@ -18,9 +18,45 @@
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::hint::black_box;
 
-use serde_json::Value;
+use serde::Serialize;
 use vault_core::{Entry, Error, KdfParams, RecoveryKey};
 use wasm_bindgen::prelude::*;
+
+/// What lists and search get. An allow list, so nothing is here by accident.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Summary<'a> {
+    v: u32,
+    seq: u64,
+    name: &'a str,
+    username: &'a str,
+    url: &'a str,
+    notes: &'a str,
+    tags: &'a [String],
+    created_at: &'a str,
+    updated_at: &'a str,
+    conflict_of: Option<&'a str>,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    deleted: bool,
+}
+
+impl<'a> Summary<'a> {
+    fn of(entry: &'a Entry) -> Self {
+        Summary {
+            v: entry.v,
+            seq: entry.seq,
+            name: &entry.name,
+            username: &entry.username,
+            url: &entry.url,
+            notes: &entry.notes,
+            tags: &entry.tags,
+            created_at: &entry.created_at,
+            updated_at: &entry.updated_at,
+            conflict_of: entry.conflict_of.as_deref(),
+            deleted: entry.deleted,
+        }
+    }
+}
 
 /// Wipes every block as it's freed. The glue code frees each string it has copied out to
 /// JavaScript and each secret it copied in, and without this a recovery key or a
@@ -231,21 +267,36 @@ impl Vault {
         serde_json::to_string(&entry).map_err(|_| to_js(Error::InvalidEntry))
     }
 
-    /// The entry as JSON without its password, for lists and search.
+    /// The entry as JSON, for lists and search: the named fields of [`Summary`] and
+    /// nothing else, so a secret field added by a newer app doesn't reach JavaScript.
     #[wasm_bindgen(js_name = decryptSummary)]
     pub fn decrypt_summary(&self, item_id: &str, ciphertext: &str) -> Result<String, JsError> {
         let entry = vault_core::decrypt_entry(&self.0, item_id, ciphertext).map_err(to_js)?;
-        let mut summary = serde_json::to_value(&entry).map_err(|_| to_js(Error::InvalidEntry))?;
-        if let Value::Object(fields) = &mut summary {
-            fields.remove("password");
-        }
-        Ok(summary.to_string())
+        serde_json::to_string(&Summary::of(&entry)).map_err(|_| to_js(Error::InvalidEntry))
+    }
+
+    /// Encrypts the deletion of an entry, given its current ciphertext. It goes to the
+    /// server like any other change.
+    #[wasm_bindgen(js_name = encryptTombstone)]
+    pub fn encrypt_tombstone(
+        &self,
+        item_id: &str,
+        current_ciphertext: &str,
+        updated_at: &str,
+    ) -> Result<String, JsError> {
+        let entry =
+            vault_core::decrypt_entry(&self.0, item_id, current_ciphertext).map_err(to_js)?;
+        vault_core::encrypt_entry(&self.0, item_id, &entry.tombstone(updated_at)).map_err(to_js)
     }
 
     /// Just the password, for revealing or copying it.
     #[wasm_bindgen(js_name = decryptPassword)]
     pub fn decrypt_password(&self, item_id: &str, ciphertext: &str) -> Result<String, JsError> {
         let entry = vault_core::decrypt_entry(&self.0, item_id, ciphertext).map_err(to_js)?;
+        // A blank password from a deleted entry isn't an answer to this.
+        if entry.deleted {
+            return Err(to_js(Error::InvalidEntry));
+        }
         Ok(entry.password.clone())
     }
 }

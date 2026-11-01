@@ -7,15 +7,17 @@ other apps and browsers, without opening the main app.
 
 Android's autofill is a native service, so this is the one part written in Kotlin. It
 lives inside the existing Tauri Android project, and uses `vault-core` through the JNI
-path proven by spike S1 in Spec 1. If S1 failed, redo this spec's crypto section first.
+path proven by spike S1 in Spec 1.
 
 ## Decisions
 
 - **The service works from the local vault file.** It needs no server or webview, which
   isn't available in a service anyway, so its UI is native Android views.
 - **The service holds no keys while idle.** Every fill offers "Unlock Cereberus" first;
-  a fingerprint or master password prompt in a native activity decrypts just enough to
-  answer that one request.
+  a master password prompt in a native activity decrypts just enough to answer that one
+  request. There's no fingerprint unlock, so that means typing the master password for
+  every fill. Try it in real use before deciding whether it needs to change. Derive keys
+  in that foreground activity: spike S1 measured over a second in a background process.
 - **A wrong match is a phishing hole,** so matching is strict:
   - In a browser: the page's domain must match the entry's URL (same registrable
     domain).
@@ -32,7 +34,8 @@ path proven by spike S1 in Spec 1. If S1 failed, redo this spec's crypto section
 - [ ] JNI functions in `app_lib` for reading the vault file, unlocking and decrypting
   entries. The spike's version, made real.
 - [ ] Decrypted data is returned for one request and not retained. Keys are zeroized
-  after use.
+  after use. Spec 3's wiping allocator covers this path, as it's the same library.
+- [ ] Tombstones are skipped, so a deleted login is never offered.
 
 ### Commit 2 — `feat(android): autofill service`
 
@@ -49,8 +52,7 @@ path proven by spike S1 in Spec 1. If S1 failed, redo this spec's crypto section
 
 ### Commit 3 — `feat(android): unlock and pick screen`
 
-- [ ] Native activity: fingerprint or master password, then the matching entries, or a
-  search.
+- [ ] Native activity: master password, then the matching entries, or a search.
 - [ ] Returns a `Dataset` for the chosen entry.
 - [ ] Uses `FLAG_SECURE`.
 

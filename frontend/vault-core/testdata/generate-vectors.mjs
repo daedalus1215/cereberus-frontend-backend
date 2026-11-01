@@ -32,19 +32,17 @@ const argon2id = (password, salt, { m, t, p }) => {
     memory: m,
     passes: t,
   });
-  // Two Argon2s, where libsodium can do it (it only offers one lane).
-  if (p === 1) {
-    const other = sodium.crypto_pwhash(
-      32,
-      message,
-      salt,
-      t,
-      m * 1024,
-      sodium.crypto_pwhash_ALG_ARGON2ID13,
-    );
-    if (!Buffer.from(other).equals(Buffer.from(key))) {
-      throw new Error("libsodium and Node disagree about Argon2id");
-    }
+  // Two Argon2s.
+  const other = sodium.crypto_pwhash(
+    32,
+    message,
+    salt,
+    t,
+    m * 1024,
+    sodium.crypto_pwhash_ALG_ARGON2ID13,
+  );
+  if (!Buffer.from(other).equals(Buffer.from(key))) {
+    throw new Error("libsodium and Node disagree about Argon2id");
   }
   return Buffer.from(key);
 };
@@ -95,8 +93,8 @@ const crockford = (bytes) => {
 const SALT = counting(16);
 const VAULT_KEY = counting(32, 0x40);
 const NONCE = counting(24, 0x80);
-const DEFAULTS = { alg: "argon2id", m: 65536, t: 3, p: 1 };
-const FLOOR = { alg: "argon2id", m: 19456, t: 2, p: 1 };
+const DEFAULTS = { alg: "argon2id", m: 131072, t: 3, p: 1 };
+const FLOOR = { alg: "argon2id", m: 65536, t: 3, p: 1 };
 
 const kdfCase = (name, password, params = DEFAULTS) => {
   const master = argon2id(password, SALT, params);
@@ -117,7 +115,6 @@ const kdfCase = (name, password, params = DEFAULTS) => {
 const kdf = [
   kdfCase("plain text", "correct horse battery staple"),
   kdfCase("the cheapest parameters allowed", "correct horse battery staple", FLOOR),
-  kdfCase("two lanes", "correct horse battery staple", { ...FLOOR, p: 2 }),
   kdfCase("accents, precomposed", "café päss"),
   kdfCase("accents, decomposed", "café päss"),
   kdfCase("a compatibility ligature", "ﬁsh"),
@@ -214,6 +211,11 @@ const entries = {
     entryCase("a field from a newer version", {
       androidPackages: ["com.example.app"],
     }),
+    entryCase("a deletion", {
+      seq: 43,
+      updatedAt: "2026-11-01T00:00:00Z",
+      deleted: true,
+    }),
   ],
 };
 
@@ -291,13 +293,14 @@ const mustFail = [
 }));
 
 const refusedParams = [
-  { ...FLOOR, m: 19455 },
-  { ...FLOOR, t: 1 },
+  { ...FLOOR, m: 65535 },
+  { ...FLOOR, t: 2 },
   { ...FLOOR, p: 0 },
+  { alg: "argon2id", m: 19456, t: 2, p: 1 },
   { alg: "argon2id", m: 8, t: 1, p: 1 },
   { ...FLOOR, m: 256 * 1024 + 1 },
   { ...FLOOR, t: 17 },
-  { ...FLOOR, p: 5 },
+  { ...FLOOR, p: 2 },
 ];
 
 process.stdout.write(

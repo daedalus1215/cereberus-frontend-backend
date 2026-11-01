@@ -38,7 +38,7 @@ interface VaultClient {
   save(entry): Promise<Entry>;
   remove(id): Promise<void>;
   changeMasterPassword(current, next): Promise<void>;
-  recover(username, recoveryKey, next): Promise<void>;
+  recover(username, recoveryKey, next, confirmNewKey: (key: string) => Promise<void>): Promise<void>;
 }
 ```
 
@@ -54,10 +54,13 @@ interface VaultClient {
   Cloudflare headers and access-denied handling keep working. Rust only ever sees
   ciphertext and keys.
 - [ ] Add the new commands to [`capabilities/default.json`](../../frontend/src-tauri/capabilities/default.json).
-- [ ] Use `vault-core-wasm`'s wiping allocator in the Tauri app too. Without it, what's
+- [ ] Use `vault-core-wasm`'s wiping allocator in the Tauri app too. The review made this
+  required, and Spec 7's JNI path gets it from the same library. Without it, what's
   serialized for IPC, such as a shown recovery key or a revealed password, stays in freed
   memory after locking. Native memory can't be searched the way WASM's can, so check the
   cost and cover it with an allocator test like `vault-core/tests/wiping.rs`.
+- [ ] Add `cargo audit` to CI, and run the vectors against `src-tauri/Cargo.lock`, since
+  that lock decides which crypto versions the apps ship.
 - [ ] Optimise the crypto crates in debug builds, through `[profile.dev.package.*]` in
   `src-tauri/Cargo.toml`. A profile in `vault-core`'s own manifest doesn't apply once
   it's a dependency. Without this, every check from a debug APK waits 2.3 to 8.7 seconds
@@ -71,6 +74,9 @@ interface VaultClient {
 - [ ] [`frontend/Dockerfile`](../../frontend/Dockerfile) gets a Rust stage that
   builds the WASM before the Node stage, since `node:22-alpine` has no Rust.
 - [ ] Run Argon2id in a Web Worker so the page doesn't freeze.
+- [ ] Check a ciphertext's length in the TypeScript wrapper before calling into WASM. The glue
+  copies the string into WASM memory before Rust's own check, and that memory never shrinks.
+- [ ] Handle `OutOfMemory` from key derivation with a clear message, not a crash.
 
 ### Commit 3 — `feat(frontend): log in and register with derived keys`
 
@@ -79,9 +85,12 @@ interface VaultClient {
   derive keys, log in, unwrap. The master password is never sent. Show progress,
   since deriving can take up to a second, and longer on older phones.
 - [ ] [`RegisterPage.tsx`](../../frontend/src/pages/RegisterPage/RegisterPage.tsx):
-  minimum 12 characters, enforced here since the server can't. Then show the
+  minimum 12 characters and a strength check, enforced here since the server can't. Twelve
+  characters alone accepts `password1234`, and every offline attack ends at the password.
+  Then show the
   recovery key, and require typing part of it back before continuing.
-- [ ] Remove [`tokenStorage.ts`](../../frontend/src/auth/tokenStorage.ts).
+- [ ] Remove [`tokenStorage.ts`](../../frontend/src/auth/tokenStorage.ts), and its use in
+  `TauriConfigGate.tsx`.
 - [ ] Keep today's distinctions: wrong password, server unreachable, Cloudflare
   Access refusal.
 
@@ -94,6 +103,8 @@ interface VaultClient {
   [`useFetchPassword.ts`](../../frontend/src/pages/HomePage/hooks/useFetchPassword.ts).
 - [ ] [`EditPasswordModal.tsx:139`](../../frontend/src/pages/HomePage/components/PasswordTable/EditPasswordModal.tsx)
   saves through `VaultClient`; tags become free text with suggestions.
+- [ ] `remove(id)` uploads a tombstone (`Entry::tombstone`, `encryptTombstone` on the web).
+  `list()` leaves tombstones out.
 - [ ] [`TagFilter.tsx`](../../frontend/src/pages/HomePage/components/PasswordTable/TagFilter.tsx)
   and search work from `list()`.
 - [ ] Decrypted data isn't kept in the TanStack Query cache after lock or sign-out.
@@ -106,7 +117,10 @@ interface VaultClient {
   rewraps the vault key; entries aren't re-encrypted.
 - [ ] [`ChangeUsernameForm.tsx`](../../frontend/src/pages/SettingsPage/components/ChangeUsernameForm.tsx)
   sends the auth key as `currentPassword`.
-- [ ] A "Forgot master password" flow using the recovery key.
+- [ ] A "Forgot master password" flow using the recovery key. Recovering uses that key up, so
+  the flow shows the new one and has you type part of it back **before** `recover/complete` is
+  sent. Otherwise a lost response leaves you with no working key and no idea.
+- [ ] "Replace your recovery key" in Settings (`PUT /users/recovery`).
 
 ### Commit 6 — `feat: content security policy for the web app and the apps`
 

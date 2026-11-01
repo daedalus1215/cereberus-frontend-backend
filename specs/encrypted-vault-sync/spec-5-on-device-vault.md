@@ -1,10 +1,9 @@
-# Spec 5 — On-device copy, read-only offline, fingerprint unlock
+# Spec 5 — On-device copy, read-only offline
 
 ## Goal
 
 The desktop and Android apps keep an encrypted copy of the vault. With no server
-they still open, unlock and show everything. Android can unlock with a fingerprint.
-The web app doesn't change.
+they still open, unlock and show everything. The web app doesn't change.
 
 Offline is read-only in this spec, so there's no sync conflict to handle yet.
 
@@ -21,6 +20,18 @@ Offline is read-only in this spec, so there's no sync conflict to handle yet.
 - **Sync is driven from TypeScript while the app is open,** using the existing
   HTTP path. There's no background sync: on unlock, when the server comes back, and
   every 30 minutes (the siblings' schedule).
+- **Pull only while unlocked.** A locked device can't read `seq`, so it can't judge what the
+  server sends. It waits until the next unlock.
+- **Tombstones stay in the file,** so a deleted entry keeps its `seq` and can't come back as
+  an older copy.
+- **Only the Sign out button deletes the local file,** after a warning. A 401, a refused
+  session or a changed server address never does: they ask you to log in again. Master
+  password changes make 401s normal, and anyone holding the auth key could otherwise use them
+  to wipe every device.
+- **A device keeps a copy of the recovery wrap** and warns if the server's changes when this
+  device didn't change it, since the auth key alone can replace it.
+- **A device never weakens its own parameters.** It pins `kdf` from this file and refuses
+  any decrease from the server, since it would send the auth key before noticing.
 - **Only Argon2id slows offline guessing.** With a copy of the local file, nothing else
   limits guesses at the master password, which is why Spec 3 sets a 12-character minimum.
 
@@ -28,17 +39,12 @@ Offline is read-only in this spec, so there's no sync conflict to handle yet.
 {
   "format": 1,
   "userId": 1, "username": "", "serverUrl": "",
-  "kdf": {}, "salt": "", "wrappedVaultKey": "",
-  "biometricBlob": null,
+  "kdf": {}, "salt": "", "wrappedVaultKey": "", "wrappedVaultKeyRecovery": "",
   "cursor": 0,
   "lastSyncedAt": null,
-  "items": { "<uuid>": { "revision": 0, "ciphertext": "cv1...", "deleted": false } }
+  "items": { "<uuid>": { "revision": 0, "ciphertext": "cv1..." } }
 }
 ```
-
-`biometricBlob` is the vault key and auth key encrypted by the Keystore key, from
-`biometric_cipher`. The auth key is included so a fingerprint unlock can still log
-in to sync.
 
 ## Commits
 
@@ -53,8 +59,12 @@ in to sync.
 
 - [ ] Fetch `GET /vault/items?since=<cursor>`; apply in one atomic save; advance the
   cursor only after that save.
-- [ ] Apply the `seq` rule from Spec 1: refuse an incoming copy with a lower `seq`
-  than the stored one, and show a warning instead of replacing it.
+- [ ] One tested function in `vault-core` decides whether to accept a pulled copy, used by
+  every client: it must decrypt, and its `seq` must be higher than the stored one. Identical
+  ciphertext changes nothing. Anything else is refused with a warning, and **the local copy
+  stays.** Junk from a stolen token must never destroy a good copy, a delete is only ever a
+  tombstone that passes this test, and requiring a higher `seq` stops a server flipping a
+  device between two real versions.
 - [ ] Sync schedule above, without blocking the UI.
 
 ### Commit 3 — `feat(frontend): unlock and read with no server`
@@ -63,7 +73,10 @@ in to sync.
   password unlocks locally, and the server login happens in the background when
   reachable.
 - [ ] If the server rejects the auth key, the master password changed elsewhere. Ask
-  for the new one, fetch the new wrapped key; entries stay valid.
+  for the new one, fetch the new wrapped key; entries stay valid. A server can trigger this
+  prompt at will, so the pinned `kdf` applies here too, and the wrap, salt and `kdf` are only
+  replaced once the new wrap opens and its key opens a stored entry. Saving them unchecked
+  would lose the only local way in.
 - [ ] Banner: "Offline: showing your copy from <time>", in the style of Nemesis's
   `frontend/src/components/OfflineBanner/OfflineBanner.tsx`.
 - [ ] Writes while offline are refused with a clear message, until Spec 6.
@@ -77,26 +90,14 @@ in to sync.
   [`background-lock.ts`](../../frontend/src/tauri/background-lock.ts) already decides when;
   today it signs out, so point it at locking instead.
 - [ ] A manual **Lock** button, separate from **Sign out**.
-- [ ] Sign-out deletes the local file and any `biometricBlob`, with a warning.
+- [ ] Sign-out deletes the local file, with a warning.
 
-### Commit 5 — `feat(android): fingerprint unlock`
-
-- [ ] Add `tauri-plugin-biometric` 2.5.0 on mobile targets only, with
-  `biometric:allow-biometric-cipher`. Called from Rust, using what spike S2 showed.
-- [ ] Opt-in, enabled in Settings after a master-password unlock. Device PIN isn't
-  accepted (`allowDeviceCredential: false`).
-- [ ] Offered on Android 11 (API 30) and up only. Below that the plugin doesn't restrict
-  which authenticators count (Spec 1, S2), so those phones stay on the master password.
-- [ ] After a new fingerprint is added, decryption fails. Fall back to the master
-  password, and offer to re-enable it.
-- [ ] Linux desktop stays on the master password; the plugin's cipher is Android-only.
-
-### Commit 6 — `feat(android): a setting to allow screenshots`
+### Commit 5 — `feat(android): a setting to allow screenshots`
 
 - [ ] `FLAG_SECURE` in [`MainActivity.kt`](../../frontend/src-tauri/gen/android/app/src/main/java/com/cereberus/app/MainActivity.kt)
   has been on since Spec 0. Add the Settings toggle (Q5), defaulting to blocked.
 
-### Commit 7 — `docs(frontend): describe the on-device vault`
+### Commit 6 — `docs(frontend): describe the on-device vault`
 
 - [ ] Replace "No offline mode" and "You log in every launch" in
   [`frontend/README.md`](../../frontend/README.md). Add a short `src/vault` README
@@ -113,21 +114,24 @@ in to sync.
 - [ ] The server comes back: changes from another device appear without a restart.
 - [ ] Auto-lock clears the screen.
 - [ ] Serving an old copy of an entry produces the warning, not a downgrade.
+- [ ] So does junk, or a delete of an entry from a stolen token: the local copy stays.
+- [ ] A 401 from the server asks you to log in, and the file is still there.
+- [ ] A junk wrap in answer to a changed password leaves the old one in place.
+- [ ] A deleted entry stays deleted after the server serves an older copy of it.
+- [ ] A lower `kdf` from the server is refused.
 - [ ] Sign-out removes the file.
 
 **Android (you)**
 
-- [ ] Airplane mode: opens, unlocks with password and with fingerprint, shows entries.
-- [ ] A new fingerprint added in system settings stops fingerprint unlock until
-  re-enabled.
+- [ ] Airplane mode: opens, unlocks with the master password, shows entries.
 - [ ] Force-stop and reopen: locked, and unlocks offline.
 - [ ] Recent-apps thumbnail is blank.
 - [ ] Updating the app keeps the local vault.
 
 ## Out of scope
 
-- Offline writes (Spec 6). Autofill (Spec 7). OS keyring unlock on Linux. Clipboard
-  auto-clear. Offline in the browser.
+- Offline writes (Spec 6). Autofill (Spec 7). Fingerprint unlock, which you don't want
+  (2026-11-01). OS keyring unlock on Linux. Clipboard auto-clear. Offline in the browser.
 
 ## Tests
 

@@ -48,6 +48,14 @@ describe("createBackgroundTimer", () => {
     expect(onExpired).toHaveBeenCalledOnce();
   });
 
+  it("expires if the clock was set back while hidden", () => {
+    const { change, onExpired, wait } = setup();
+    change(true);
+    wait(-1);
+    change(false);
+    expect(onExpired).toHaveBeenCalledOnce();
+  });
+
   it("ignores coming back without having been hidden", () => {
     const { change, onExpired, wait } = setup();
     wait(BACKGROUND_LOCK_MS);

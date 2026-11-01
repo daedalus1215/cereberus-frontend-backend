@@ -14,13 +14,23 @@ version of a password is ever silently lost.
 
 | This device | Server has | Result |
 |---|---|---|
-| Edited | Edited elsewhere | Server's version keeps the entry. This device's version becomes a new entry with `conflictOf` set |
+| Edited | Edited elsewhere | Server's version keeps the entry, if it decrypts and its `seq` is above the outbox's `baseSeq`. If not, the local copy stays and you're warned, so a conflict reply can't roll an entry back. This device's version becomes a new entry with `conflictOf` set |
 | Edited | Deleted elsewhere | This device's version comes back as a new entry, with `conflictOf` set |
 | Deleted | Edited elsewhere | Delete is dropped, and the edited entry stays. Tell the user |
 | Deleted | Deleted | Nothing to do |
 
 - **A conflict copy is an ordinary encrypted entry,** so it syncs to other devices and
   gets resolved once. Resolving means choosing which to keep and deleting the other.
+- **A delete is a tombstone with a higher `seq`.** In the table, "deleted" means a tombstone
+  that passed the check above. Nothing else counts.
+- **Conflict replies are checked against the last synced copy** (`baseSeq`), not the pending
+  edit. Two offline edits can leave a device's `seq` above a real edit made elsewhere, and
+  comparing with the pending edit would call that a rollback. False alarms would also teach
+  you to ignore the only rollback warning there is.
+- **Junk on the server heals.** A pulled copy that fails with `DecryptionFailed` or
+  `MalformedCiphertext` is refused, and the device re-queues its own copy. A copy that fails
+  with `UnsupportedEntryVersion` or `UnsupportedFormat` was written by a newer app, so it's
+  left alone and the app asks to be updated.
 - **Retries are safe.** Spec 2 returns `ok` for a re-sent identical ciphertext, so a
   lost response doesn't turn into a false conflict.
 
@@ -28,7 +38,7 @@ version of a password is ever silently lost.
 
 ### Commit 1 — `feat(desktop): queue of local changes`
 
-- [ ] Add `outbox: [{ id, baseRevision, ciphertext | null }]` to the vault file, with
+- [ ] Add `outbox: [{ id, baseRevision, baseSeq, ciphertext }]` to the vault file, with
   `format` raised to 2 and an upgrade from 1.
 - [ ] `save` and `remove` update `items` and the outbox in one atomic save.
 - [ ] Editing an entry that's already queued replaces its queued change and keeps its
@@ -55,8 +65,12 @@ version of a password is ever silently lost.
 
 - [ ] Home-lab restores are a real scenario. When the device's cursor is ahead of
   `latestRevision`, do a full pull rather than trusting the cursor.
-- [ ] For each entry where the device's `seq` is higher than the server's, re-queue
-  the device's copy. Nothing newer on a device is lost to a restore.
+- [ ] For each entry where the device's `seq` is higher than the server's, or the server's
+  copy is junk as defined above, re-queue the device's copy. Nothing newer on a device is lost to a
+  restore, and a tombstone is re-queued like an edit, so deleted entries don't come back.
+- [ ] **A known limit:** `seq` is one number, so it can't spot two devices editing
+  separately from a restored backup. The higher `seq` wins without a conflict. Accepted for
+  one person's devices, and the notice below points you to check recent edits.
 - [ ] Show a notice saying this happened.
 
 ### Commit 5 — `feat(frontend): sync status`

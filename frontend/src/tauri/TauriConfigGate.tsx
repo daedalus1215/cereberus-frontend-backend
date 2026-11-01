@@ -28,8 +28,11 @@ import {
 } from "./api-config";
 import {
   describeConnectionCheck,
+  isDifferentServer,
+  sendsSavedTokenElsewhere,
   type ConnectionCheck,
 } from "./connection-check";
+import { tokenStorage } from "../auth/tokenStorage";
 import {
   onOpenConnectionSettings,
   type ConnectionSettingsReason,
@@ -119,6 +122,13 @@ const ConnectionForm: FC<ConnectionFormProps> = ({
     if (!config.cfAccessClientId !== !config.cfAccessClientSecret) {
       setProblem(
         "Enter both the client ID and the secret, or leave both blank.",
+      );
+      return;
+    }
+    if (sendsSavedTokenElsewhere(initial, config)) {
+      setForm({ ...form, cfAccessClientId: "", cfAccessClientSecret: "" });
+      setProblem(
+        "That's a different server, so the saved Access token has been cleared. Enter this server's token, or leave both fields blank.",
       );
       return;
     }
@@ -262,6 +272,16 @@ export const TauriConfigGate: FC<{ children: ReactNode }> = ({ children }) => {
   );
 
   const handleSaved = (config: ApiConfig) => {
+    // The session belongs to the old server, and mustn't be sent to the new one. A
+    // fresh start also clears anything loaded from the old one.
+    if (
+      savedConfig &&
+      isDifferentServer(savedConfig.apiBaseUrl, config.apiBaseUrl)
+    ) {
+      tokenStorage.removeToken();
+      window.location.replace("/");
+      return;
+    }
     setSavedConfig(config);
     setIsEditing(false);
     setStatus("ready");

@@ -417,6 +417,7 @@ name = "vault-core-wasm"
 version = "0.1.0"
 dependencies = [
  "getrandom",
+ "serde",
  "serde_json",
  "vault-core",
  "wasm-bindgen",

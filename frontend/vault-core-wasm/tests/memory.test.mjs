@@ -19,7 +19,7 @@ const vectors = JSON.parse(
   ),
 );
 
-const FAST = JSON.stringify({ alg: "argon2id", m: 19456, t: 2, p: 1 });
+const FAST = JSON.stringify({ alg: "argon2id", m: 65536, t: 3, p: 1 });
 const ITEM_ID = "0f8fad5b-d9cb-469f-a165-70867728950e";
 
 const copiesOf = (needle) => {

@@ -28,6 +28,8 @@ pub enum Error {
     InvalidEntry,
     /// The entry is larger than the server accepts.
     EntryTooLarge,
+    /// There isn't enough free memory for these key derivation parameters.
+    OutOfMemory,
     /// The system couldn't provide random bytes.
     RandomUnavailable,
     /// The cipher refused to encrypt. Shouldn't be reachable with valid keys.
@@ -48,6 +50,7 @@ impl fmt::Display for Error {
             Error::UnsupportedEntryVersion => "the entry version isn't supported",
             Error::InvalidEntry => "the entry is invalid",
             Error::EntryTooLarge => "the entry is too large",
+            Error::OutOfMemory => "there isn't enough memory to derive the keys",
             Error::RandomUnavailable => "random bytes are unavailable",
             Error::EncryptionFailed => "encryption failed",
         })

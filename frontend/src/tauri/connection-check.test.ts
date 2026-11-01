@@ -2,6 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import {
   checkConnection,
   describeConnectionCheck,
+  hostOf,
+  isDifferentServer,
+  sendsSavedTokenElsewhere,
   type CheckFetch,
 } from "./connection-check";
 
@@ -25,6 +28,84 @@ const respondingWith = (response: Response | (() => Promise<Response>)) =>
   vi.fn<CheckFetch>(async () =>
     typeof response === "function" ? response() : response,
   );
+
+describe("sendsSavedTokenElsewhere", () => {
+  const elsewhere = { ...CONFIG, apiBaseUrl: "https://attacker.test" };
+
+  it("catches the saved secret going to a new address", () => {
+    expect(sendsSavedTokenElsewhere(CONFIG, elsewhere)).toBe(true);
+    expect(
+      sendsSavedTokenElsewhere(CONFIG, {
+        ...CONFIG,
+        apiBaseUrl: "http://cereberus.test",
+      }),
+    ).toBe(true);
+    expect(
+      sendsSavedTokenElsewhere(CONFIG, {
+        ...CONFIG,
+        apiBaseUrl: "https://cereberus.test:8443",
+      }),
+    ).toBe(true);
+  });
+
+  it("catches an address that doesn't parse", () => {
+    expect(
+      sendsSavedTokenElsewhere(CONFIG, { ...CONFIG, apiBaseUrl: "cereberus" }),
+    ).toBe(true);
+  });
+
+  it("allows the same server, however it's written", () => {
+    expect(sendsSavedTokenElsewhere(CONFIG, CONFIG)).toBe(false);
+    expect(
+      sendsSavedTokenElsewhere(CONFIG, {
+        ...CONFIG,
+        apiBaseUrl: "https://CEREBERUS.test/",
+      }),
+    ).toBe(false);
+  });
+
+  it("allows a new address with its own token, or none", () => {
+    expect(
+      sendsSavedTokenElsewhere(CONFIG, {
+        ...elsewhere,
+        cfAccessClientSecret: "another secret",
+      }),
+    ).toBe(false);
+    expect(
+      sendsSavedTokenElsewhere(CONFIG, {
+        ...elsewhere,
+        cfAccessClientId: "",
+        cfAccessClientSecret: "",
+      }),
+    ).toBe(false);
+  });
+
+  it("has nothing to protect when no token is saved", () => {
+    const none = { ...CONFIG, cfAccessClientId: "", cfAccessClientSecret: "" };
+    expect(
+      sendsSavedTokenElsewhere(none, {
+        ...none,
+        apiBaseUrl: "https://elsewhere.test",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("isDifferentServer and hostOf", () => {
+  it("compares origins, not spelling or path", () => {
+    expect(
+      isDifferentServer("https://a.test", "https://A.test/some/path"),
+    ).toBe(false);
+    expect(isDifferentServer("https://a.test", "https://b.test")).toBe(true);
+    expect(isDifferentServer("https://a.test", "http://a.test")).toBe(true);
+  });
+
+  it("gives the host to show, with its port", () => {
+    expect(hostOf("https://a.test/path")).toBe("a.test");
+    expect(hostOf("http://a.test:3000")).toBe("a.test:3000");
+    expect(hostOf("not an address")).toBeNull();
+  });
+});
 
 describe("checkConnection", () => {
   it("asks the backend's health check, sending the token and not following redirects", async () => {

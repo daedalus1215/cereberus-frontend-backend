@@ -13,6 +13,8 @@ use crate::secret::{KEY_LEN, burn_stack};
 const PREFIX: &str = "cv1.";
 pub(crate) const NONCE_LEN: usize = 24;
 const TAG_LEN: usize = 16;
+// Fits the server's 256 KiB limit once nonce, tag and base64url are added.
+pub(crate) const MAX_PLAINTEXT_LEN: usize = 191 * 1024;
 
 pub(crate) fn seal(key: &[u8; KEY_LEN], aad: &[u8], plaintext: &[u8]) -> Result<String, Error> {
     let mut nonce = [0u8; NONCE_LEN];
@@ -69,6 +71,11 @@ pub(crate) fn open(
 #[inline(never)]
 fn run_open(key: &[u8; KEY_LEN], aad: &[u8], text: &str) -> Result<Zeroizing<Vec<u8>>, Error> {
     let encoded = text.strip_prefix(PREFIX).ok_or(Error::UnsupportedFormat)?;
+    // Checked before decoding, or a hostile server could make a device allocate as much
+    // as it likes. WebAssembly memory never shrinks again.
+    if encoded.len() > BASE64URL_NOPAD.encode_len(NONCE_LEN + MAX_PLAINTEXT_LEN + TAG_LEN) {
+        return Err(Error::MalformedCiphertext);
+    }
     let raw = BASE64URL_NOPAD
         .decode(encoded.as_bytes())
         .map_err(|_| Error::MalformedCiphertext)?;
@@ -176,6 +183,19 @@ mod tests {
                 "{text}"
             );
         }
+    }
+
+    #[test]
+    fn the_largest_ciphertext_opens_and_anything_longer_is_refused() {
+        let largest = seal(&KEY, b"aad", &vec![0; MAX_PLAINTEXT_LEN]).unwrap();
+        assert!(open(&KEY, b"aad", &largest).is_ok());
+
+        // Authentic, so nothing but the length check can be what refuses it.
+        let too_long = seal(&KEY, b"aad", &vec![0; MAX_PLAINTEXT_LEN + 1]).unwrap();
+        assert_eq!(
+            open(&KEY, b"aad", &too_long).err(),
+            Some(Error::MalformedCiphertext)
+        );
     }
 
     #[test]

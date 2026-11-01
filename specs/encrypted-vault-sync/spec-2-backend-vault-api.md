@@ -13,10 +13,13 @@ uses it.
   in one go.
 - **Client-made UUIDs replace integer ids,** so a device can create entries while
   offline.
-- **Deletes leave a marker** (`deleted_at`, ciphertext cleared). Today's hard delete
+- **A delete is an ordinary encrypted change.** The device uploads a tombstone: the entry
+  with `deleted: true` and a higher `seq` (Spec 1). The server can't tell it from an edit
+  and stores it like one, so a stolen token or hostile server can't make a device delete
+  anything. Today's hard delete
   ([`password.repository.impl.ts:33`](../../backend/src/password/infra/repositories/password.repository.impl.ts))
-  would leave other devices holding the entry forever. Markers are kept, since
-  they're tiny.
+  would leave other devices holding the entry forever. Tombstones are kept, at about 400
+  characters each.
 - **Revisions, not timestamps.** Each account has a counter, bumped in the same
   transaction as the write. The row lock on `user` keeps one account's writes in
   order, so `since=N` can't skip one. Device clocks are never trusted.
@@ -30,9 +33,8 @@ uses it.
 vault_items
   user_id     int   references "user"
   id          uuid
-  ciphertext  text  null (null once deleted)
+  ciphertext  text
   revision    bigint
-  deleted_at  timestamptz null
   created_at, updated_at
   primary key (user_id, id)    one account can't touch another's row by guessing a UUID
   index (user_id, revision)
@@ -44,6 +46,7 @@ vault_items
   wrapped_vault_key_recovery  text null
   recovery_auth_hash          text null
   vault_revision              bigint default 0
+  keys_changed_at             timestamptz null      session tokens from before this are refused
 ```
 
 `user` is a reserved word in Postgres; quote it in raw SQL.
@@ -58,19 +61,21 @@ POST /auth/login   { username, password: <auth key> }
      { access_token, wrappedVaultKey }
 
 GET  /vault/items?since=<revision>
-     { items: [{ id, revision, ciphertext, deleted }], latestRevision }
+     { items: [{ id, revision, ciphertext }], latestRevision }
 
 POST /vault/changes
-     { changes: [{ id, baseRevision | null, ciphertext | null }] }     null ciphertext = delete
+     { changes: [{ id, baseRevision | null, ciphertext }] }
      { results: [{ id, status: "ok", revision }
-               | { id, status: "conflict", current: { revision, ciphertext, deleted } }],
+               | { id, status: "conflict", current: { revision, ciphertext } }],
        latestRevision }
 
 POST /users/register            { username, password: <auth key>, salt, kdf,
                                   wrappedVaultKey, wrappedVaultKeyRecovery, recoveryAuth }
 PUT  /users/master-password     { currentAuthKey, newAuthKey, salt, kdf, wrappedVaultKey }
-POST /auth/recover/start        { username, recoveryAuth }  →  { wrappedVaultKeyRecovery }
-POST /auth/recover/complete     { username, recoveryAuth, newAuthKey, salt, kdf, wrappedVaultKey }
+POST /auth/recover/start        { username }  →  { wrappedVaultKeyRecovery }
+POST /auth/recover/complete     { username, recoveryAuth, newAuthKey, salt, kdf, wrappedVaultKey,
+                                  wrappedVaultKeyRecovery, newRecoveryAuth }
+PUT  /users/recovery            { currentAuthKey, wrappedVaultKeyRecovery, recoveryAuth }
 ```
 
 ## Commits
@@ -93,8 +98,8 @@ POST /auth/recover/complete     { username, recoveryAuth, newAuthKey, salt, kdf,
 
 - [ ] `backend/src/vault/` module, action then transaction script then repository,
   with validated DTOs (`main.ts` sets `forbidNonWhitelisted`).
-- [ ] `GET /vault/items`: only the caller's rows, `revision > since`, including
-  delete markers, plus `latestRevision`.
+- [ ] `GET /vault/items`: only the caller's rows, `revision > since`, plus
+  `latestRevision`.
 - [ ] `POST /vault/changes`, in one transaction per request, for each change:
   - `baseRevision` matches the row's revision (or null and no row exists): write
     it, bump `vault_revision`, return `ok`.
@@ -123,9 +128,21 @@ POST /auth/recover/complete     { username, recoveryAuth, newAuthKey, salt, kdf,
   anything outside them.
 - [ ] `PUT /users/master-password`: checks the current auth key, then replaces the
   hash, salt, parameters and wrapped key together, in one transaction.
-- [ ] `POST /auth/recover/*`, throttled at 5 a minute like login. `recoveryAuth`
-  is compared against `recovery_auth_hash` in constant time; a failed attempt is
-  logged through `SecurityEventAggregator`, as a failed login is.
+- [ ] `POST /auth/recover/*`, throttled at 5 a minute like login.
+- [ ] `recover/start` takes no proof and returns the wrap, with a decoy for an unknown name
+  made the way prelogin's salt is. The wrap sits under a 256-bit key, so that's safe, and it
+  means the proof first crosses the wire in `complete`, where it's used up. If `start` took
+  it, anyone reading traffic could beat the user to `complete` and destroy recovery.
+- [ ] `recover/complete`: `recoveryAuth` is compared against `recovery_auth_hash` in constant
+  time, and a failed attempt is logged through `SecurityEventAggregator`, as a failed login
+  is. It also replaces the recovery wrap and proof, so a recovery key is used once.
+- [ ] `PUT /users/recovery` replaces the recovery key. `vault-core` can already make one.
+- [ ] Changing the master password or recovering sets `keys_changed_at`, and the JWT
+  strategy, which today does no database check, refuses tokens issued before it. Compare in
+  whole seconds, since a JWT's `iat` is: a login in the same second as the change must work.
+- [ ] `PUT /users/password` returns 410 for `encryption_version = 1` accounts. It writes a
+  new hash without touching the salt or wrapped key, which would leave the login and the
+  vault out of step.
 - [ ] [`PUT /users/username`](../../backend/src/users/domain/transaction-scripts/update-username-TS/update-username.transaction.script.ts)
   needs no change, since the client sends the auth key as `currentPassword`.
 
@@ -136,7 +153,8 @@ POST /auth/recover/complete     { username, recoveryAuth, newAuthKey, salt, kdf,
 - Two devices editing from the same `baseRevision`: first gets `ok`, second gets
   `conflict` with the first's row.
 - Sending the same change twice gives `ok` both times and one revision.
-- `since=N` returns exactly the changes after N, including deletes.
+- `since=N` returns exactly the changes after N.
+- A session token from before a master password change is refused.
 - One account can't read or overwrite another's entries, even knowing the UUID.
 - `/auth/prelogin` looks the same for real and unknown usernames.
 - Every legacy endpoint behaves as it did. The existing specs still pass.
@@ -145,8 +163,8 @@ POST /auth/recover/complete     { username, recoveryAuth, newAuthKey, salt, kdf,
 
 - Client changes (Spec 3).
 - Legacy export and migration endpoints (Spec 4).
-- Per-device sessions and revocation. Changing the master password locks other
-  devices out of sync, which is enough for now.
+- Per-device sessions. Revoking every session by changing the master password is enough
+  for now.
 
 ## Tests
 
