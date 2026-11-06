@@ -123,8 +123,8 @@ to the backend.
 | Workflow | Trigger | Produces |
 |---|---|---|
 | `vault-core.yml` | PRs and pushes touching `frontend/vault-core*` | clippy + tests for the native and WebAssembly builds |
-| `tauri-android-build.yml` | PRs, or manual run on any branch | signed debug APK artifact for trying a branch on a phone |
-| `tauri-android-release.yml` | a version tag (e.g. `v0.1.0`) | signed release APK attached to the GitHub Release |
+| `tauri-android-build.yml` | manual run on any branch | signed debug APK artifact for trying a branch on a phone |
+| `tauri-android-release.yml` | manual run; on a version tag (e.g. `v0.1.0`) it also publishes | signed release APK, attached to the GitHub Release when run on a tag |
 | `desktop-build.yml` | manual run | AppImage / .deb / .rpm for x64 and arm64 |
 
 ## Security notes
