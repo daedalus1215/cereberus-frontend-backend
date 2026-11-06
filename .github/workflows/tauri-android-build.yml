@@ -1,12 +1,11 @@
 name: Android (Tauri) debug build
 
-# Checks that pull requests still build for Android. The APK it uploads is the
-# debug app (com.cereberus.app.debug), which installs beside the release app,
-# for trying a branch on a phone. Run workflow builds one from any branch.
-# Releases come from tauri-android-release.yml.
+# Manual only (Actions → Run workflow, on any branch), so builds happen only
+# when one is wanted rather than on every pull request. The APK it uploads is
+# the debug app (com.cereberus.app.debug), which installs beside the release
+# app, for trying a branch on a phone. Releases come from
+# tauri-android-release.yml.
 on:
-  pull_request:
-    paths: ['frontend/**', '.github/workflows/tauri-android-build.yml']
   workflow_dispatch:
 
 # A newer run on the same branch makes a running build moot; cancel it so it
