@@ -1,11 +1,11 @@
 name: Android (Tauri) release
 
-# Pushing a tag like v0.2.0 builds the release APK and publishes it as a
-# GitHub Release. Run workflow builds one from any branch without publishing
-# it; the APK is the run's artifact.
+# Manual only (Actions → Run workflow). Run it on a tag like v0.2.0 (pick the
+# tag under "Use workflow from", or `gh workflow run tauri-android-release.yml
+# --ref v0.2.0`) and it builds the release APK and publishes it as a GitHub
+# Release for that tag. Run it on a branch and it builds one without
+# publishing it; the APK is the run's artifact.
 on:
-  push:
-    tags: ['v*']
   workflow_dispatch:
 
 # Never cancel a release halfway; a second run for the same ref waits.
@@ -33,9 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # The tag names the version (v0.2.0 is 0.2.0); a run started by hand
-      # builds the version in tauri.conf.json. This runs first so a bad tag
-      # fails in seconds.
+      # Run on a tag, the tag names the version (v0.2.0 is 0.2.0); run on a
+      # branch, it builds the version in tauri.conf.json. This runs first so a
+      # bad tag fails in seconds.
       - name: Work out the version
         id: version
         run: |
